@@ -24,6 +24,13 @@ export default function Dashboard(){
       }
     }
     load()
+    if (isDemoMode) return
+    const ch = supabase.channel('dashboard-realtime')
+      .on('postgres_changes', {event:'*', schema:'public', table:'patients'}, ()=> load())
+      .on('postgres_changes', {event:'*', schema:'public', table:'visits'}, ()=> load())
+      .on('postgres_changes', {event:'*', schema:'public', table:'patient_images'}, ()=> load())
+      .subscribe()
+    return ()=> { supabase.removeChannel(ch) }
   },[])
 
   if (!stats) return <div className="animate-pulse space-y-4"><div className="h-32 bg-slate-200 rounded-2xl" /><div className="h-64 bg-slate-200 rounded-2xl" /></div>

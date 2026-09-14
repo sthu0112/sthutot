@@ -31,6 +31,16 @@ export default function Patients(){
   useEffect(()=>{ load() },[search,status,sort,page])
   useEffect(()=> setPage(1),[search,status,sort])
 
+  // Realtime: tự động refresh khi có hồ sơ mới/sửa (Supabase Realtime)
+  useEffect(()=>{
+    if (isDemoMode) return
+    const ch = supabase.channel('patients-realtime')
+      .on('postgres_changes', { event:'*', schema:'public', table:'patients' }, ()=> load())
+      .on('postgres_changes', { event:'*', schema:'public', table:'visits' }, ()=> load())
+      .subscribe()
+    return ()=> { supabase.removeChannel(ch) }
+  },[search,status,sort,page])
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">

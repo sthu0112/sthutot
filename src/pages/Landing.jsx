@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion, useScroll, useTransform, useInView } from 'framer-motion'
 import { ShieldCheck, Lock, Database, Image as ImageIcon, ClipboardList, Search, BarChart3, Users, Stethoscope, ArrowRight, Check, Sparkles, Activity, FileText, Eye, Zap, HeartPulse, Layers, Clock, Award } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { playClick } from '../utils/sound'
 
 function CanvasBackground(){
   const canvasRef = useRef(null)
@@ -113,11 +114,11 @@ export default function Landing(){
           </nav>
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
-              <Link to="/dashboard" className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800">Vào Dashboard</Link>
+              <Link to="/dashboard" onClick={()=>playClick('tap')} className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800">Vào Dashboard</Link>
             ) : (
               <>
-                <Link to="/login" className="hidden sm:inline-flex px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm font-medium hover:bg-slate-50">Đăng nhập</Link>
-                <Link to="/register" className="px-4 py-2 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700">Đăng ký bác sĩ</Link>
+                <Link to="/login" onClick={()=>playClick('tap')} className="hidden sm:inline-flex px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm font-medium hover:bg-slate-50">Đăng nhập</Link>
+                <Link to="/register" onClick={()=>playClick('tap')} className="px-4 py-2 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700">Đăng ký bác sĩ</Link>
               </>
             )}
           </div>
@@ -143,10 +144,10 @@ export default function Landing(){
                 DERMACARE RECORDS là web app thực tế cho bác sĩ da liễu: tạo mã hồ sơ <span className="font-mono font-semibold">DERM-YYYY-XXXXXX</span> duy nhất, lưu thăm khám, hình ảnh tổn thương vào bucket <span className="font-mono">luutruhoso</span> PRIVATE với signed URL, RLS và audit đầy đủ.
               </motion.p>
               <motion.div initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{delay:0.32, duration:0.6}} className="flex flex-wrap gap-3 mt-7">
-                <Link to={isAuthenticated?"/dashboard":"/register"} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800">
+                <Link to={isAuthenticated?"/dashboard":"/register"} onClick={()=>playClick('success')} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800">
                   Bắt đầu miễn phí <ArrowRight size={16} />
                 </Link>
-                <Link to="/login" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white border border-slate-200 text-sm font-semibold hover:bg-slate-50">Xem demo</Link>
+                <Link to="/login" onClick={()=>playClick('tap')} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white border border-slate-200 text-sm font-semibold hover:bg-slate-50">Xem demo</Link>
                 <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 self-center"><Clock size={14} /> Thiết lập 5 phút với Supabase</span>
               </motion.div>
               <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.5, duration:0.6}} className="flex items-center gap-4 mt-6 text-xs text-slate-500">
@@ -307,8 +308,8 @@ export default function Landing(){
               <div className="text-slate-300 text-sm mt-1">Chạy demo ngay không cần Supabase, hoặc kết nối project gzznbchlgkqcmcoswsef trong 5 phút.</div>
             </div>
             <div className="flex gap-3 shrink-0">
-              <Link to="/register" className="px-5 py-3 rounded-xl bg-white text-slate-900 text-sm font-semibold hover:bg-slate-50">Đăng ký bác sĩ</Link>
-              <Link to="/login" className="px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-sm font-semibold hover:bg-white/15">Đăng nhập</Link>
+              <Link to="/register" onClick={()=>playClick('success')} className="px-5 py-3 rounded-xl bg-white text-slate-900 text-sm font-semibold hover:bg-slate-50">Đăng ký bác sĩ</Link>
+              <Link to="/login" onClick={()=>playClick('tap')} className="px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-sm font-semibold hover:bg-white/15">Đăng nhập</Link>
             </div>
           </div>
         </motion.div>

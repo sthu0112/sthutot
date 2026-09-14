@@ -420,6 +420,25 @@ begin
 end $$;
 
 -- ============================================================
+-- REALTIME — cho lưu trữ realtime user & hồ sơ
+-- ============================================================
+-- Bật realtime cho các bảng chính (cần chạy sau khi tạo bảng)
+do $$ begin
+  begin
+    alter publication supabase_realtime add table profiles;
+  exception when duplicate_object then null; end;
+  begin
+    alter publication supabase_realtime add table patients;
+  exception when duplicate_object then null; end;
+  begin
+    alter publication supabase_realtime add table visits;
+  exception when duplicate_object then null; end;
+  begin
+    alter publication supabase_realtime add table patient_images;
+  exception when duplicate_object then null; end;
+end $$;
+
+-- ============================================================
 -- MIGRATION: normalize legacy DER- codes to DERM- if needed
 -- ============================================================
 -- Uncomment to migrate existing DER- codes:
