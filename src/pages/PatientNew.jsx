@@ -34,7 +34,7 @@ export default function PatientNew(){
         await supabase.from('audit_logs').insert({ user_id: (await supabase.auth.getUser()).data.user?.id, action:'create_patient', table_name:'patients', record_id: patient.id, metadata:{record_code: patient.record_code} })
       }
       toast.push(`Đã tạo hồ sơ ${patient.record_code}`,'success')
-      nav(`/patients/${patient.id}`)
+      nav(`/dashboard/patients/${patient.id}`)
     } catch(err){ toast.push(err.message || 'Không thể lưu hồ sơ. Vui lòng thử lại.','error') }
     finally{ setLoading(false) }
   }

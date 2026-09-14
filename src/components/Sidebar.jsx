@@ -1,16 +1,16 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 import { LayoutDashboard, Users, UserPlus, ClipboardList, Images, Search, BarChart3, Settings, LogOut, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 const nav = [
-  { to:'/', label:'Dashboard', icon: LayoutDashboard },
-  { to:'/patients', label:'Bệnh nhân', icon: Users },
-  { to:'/patients/new', label:'Thêm bệnh nhân', icon: UserPlus },
-  { to:'/visits', label:'Lịch sử khám', icon: ClipboardList },
-  { to:'/images', label:'Hình ảnh', icon: Images },
-  { to:'/search', label:'Tìm hồ sơ', icon: Search },
-  { to:'/stats', label:'Thống kê', icon: BarChart3 },
-  { to:'/settings', label:'Cài đặt', icon: Settings },
+  { to:'/dashboard', label:'Dashboard', icon: LayoutDashboard },
+  { to:'/dashboard/patients', label:'Bệnh nhân', icon: Users },
+  { to:'/dashboard/patients/new', label:'Thêm bệnh nhân', icon: UserPlus },
+  { to:'/dashboard/visits', label:'Lịch sử khám', icon: ClipboardList },
+  { to:'/dashboard/images', label:'Hình ảnh', icon: Images },
+  { to:'/dashboard/search', label:'Tìm hồ sơ', icon: Search },
+  { to:'/dashboard/stats', label:'Thống kê', icon: BarChart3 },
+  { to:'/dashboard/settings', label:'Cài đặt', icon: Settings },
 ]
 
 export default function Sidebar({ collapsed=false, onClose }) {
@@ -18,13 +18,13 @@ export default function Sidebar({ collapsed=false, onClose }) {
   return (
     <aside className={`bg-white border-r border-slate-200 flex flex-col ${collapsed ? 'w-full' : 'w-[260px] shrink-0'} min-h-screen`}>
       <div className="px-5 py-5 border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center text-white"><ClipboardList size={18} /></div>
           <div>
             <div className="font-bold text-slate-900 leading-none">DERMA CARE</div>
             <div className="text-[11px] tracking-widest text-teal-600 font-medium">SECURE RECORDS</div>
           </div>
-        </div>
+        </Link>
         {onClose && <button onClick={onClose} className="lg:hidden p-2 rounded-lg hover:bg-slate-100"><X size={18} /></button>}
       </div>
 

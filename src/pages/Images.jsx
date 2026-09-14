@@ -54,7 +54,7 @@ export default function ImagesView(){
                 </div>
                 <div className="text-sm font-medium mt-2 truncate">{p?.full_name || img.patient_id} <span className="font-mono text-xs text-slate-500">{p?.record_code}</span></div>
                 <div className="text-xs text-slate-600 line-clamp-2">{img.notes || '—'}</div>
-                {p && <Link to={`/patients/${p.id}`} className="text-xs text-teal-700 hover:underline">Mở hồ sơ</Link>}
+                {p && <Link to={`/dashboard/patients/${p.id}`} className="text-xs text-teal-700 hover:underline">Mở hồ sơ</Link>}
               </div>
             </div>
           )

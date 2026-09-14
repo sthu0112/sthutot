@@ -52,7 +52,7 @@ export default function SearchPage(){
                   <div className="font-semibold">{p.full_name}</div>
                   <div className="font-mono text-xs text-slate-500">{p.record_code} {p.phone ? `· ${p.phone}`:''}</div>
                 </div>
-                <Link to={`/patients/${p.id || p.record_code}`} className="px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-medium">Mở hồ sơ</Link>
+                <Link to={`/dashboard/patients/${p.id || p.record_code}`} className="px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-medium">Mở hồ sơ</Link>
               </div>
             ))}
           </div>

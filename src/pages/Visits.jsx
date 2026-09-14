@@ -41,7 +41,7 @@ export default function Visits(){
                   <tr key={v.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3 font-mono text-xs">{formatDate(v.visit_date)}</td>
                     <td className="px-4 py-3 font-medium">
-                      {p ? <Link to={`/patients/${p.id}`} className="text-teal-700 hover:underline">{p.full_name}</Link> : v.patient_id}
+                      {p ? <Link to={`/dashboard/patients/${p.id}`} className="text-teal-700 hover:underline">{p.full_name}</Link> : v.patient_id}
                     </td>
                     <td className="px-4 py-3 font-mono text-xs">{p?.record_code || '—'}</td>
                     <td className="px-4 py-3 max-w-[320px] truncate" title={v.diagnosis}>{v.diagnosis || '—'}</td>

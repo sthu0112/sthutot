@@ -59,20 +59,20 @@ export default function Dashboard(){
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Link to="/patients/new" className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition text-center">
+        <Link to="/dashboard/patients/new" className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition text-center">
           <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center mx-auto"><Plus size={20} /></div>
           <div className="text-sm font-semibold mt-2">Thêm bệnh nhân</div>
           <div className="text-xs text-slate-500">Tạo hồ sơ mới</div>
         </Link>
-        <Link to="/patients" className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition text-center">
+        <Link to="/dashboard/patients" className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition text-center">
           <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center mx-auto"><ClipboardList size={18} /></div>
           <div className="text-sm font-semibold mt-2">Danh sách bệnh nhân</div><div className="text-xs text-slate-500">Xem & quản lý</div>
         </Link>
-        <Link to="/search" className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition text-center">
+        <Link to="/dashboard/search" className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition text-center">
           <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center mx-auto"><Search size={18} /></div>
           <div className="text-sm font-semibold mt-2">Tìm hồ sơ</div><div className="text-xs text-slate-500">Bằng mã hồ sơ</div>
         </Link>
-        <Link to="/images" className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition text-center">
+        <Link to="/dashboard/images" className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition text-center">
           <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center mx-auto"><Images size={18} /></div>
           <div className="text-sm font-semibold mt-2">Thư viện ảnh</div><div className="text-xs text-slate-500">Quản lý hình ảnh</div>
         </Link>
@@ -82,7 +82,7 @@ export default function Dashboard(){
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-900 flex items-center gap-2"><Calendar size={16} className="text-teal-600" /> Lịch khám gần đây</h3>
-            <Link to="/visits" className="text-xs font-medium text-teal-700 hover:underline">Xem tất cả</Link>
+            <Link to="/dashboard/visits" className="text-xs font-medium text-teal-700 hover:underline">Xem tất cả</Link>
           </div>
           <div className="space-y-3">
             {(stats.recentVisits||[]).map(v=>(
@@ -102,11 +102,11 @@ export default function Dashboard(){
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-900 flex items-center gap-2"><FileText size={16} className="text-slate-700" /> Hồ sơ mới</h3>
-            <Link to="/patients" className="text-xs font-medium text-teal-700 hover:underline">Xem tất cả</Link>
+            <Link to="/dashboard/patients" className="text-xs font-medium text-teal-700 hover:underline">Xem tất cả</Link>
           </div>
           <div className="space-y-2">
             {(stats.newPatients||[]).map(p=>(
-              <Link key={p.id} to={`/patients/${p.id}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200">
+              <Link key={p.id} to={`/dashboard/patients/${p.id}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200">
                 <div className="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center text-sm font-bold">{p.full_name[0]}</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium">{p.full_name}</div>

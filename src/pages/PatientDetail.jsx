@@ -51,7 +51,7 @@ export default function PatientDetail(){
   useEffect(()=>{ load() },[id])
 
   if (patient === null) return <div className="text-center py-16 text-slate-500">Đang tải hồ sơ...</div>
-  if (!patient) return <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center"><div className="text-lg font-semibold">Không tìm thấy hồ sơ</div><p className="text-sm text-slate-500 mt-1">Mã <span className="font-mono">{id}</span> không tồn tại.</p><Link to="/patients" className="inline-flex mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm">Quay lại danh sách</Link></div>
+  if (!patient) return <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center"><div className="text-lg font-semibold">Không tìm thấy hồ sơ</div><p className="text-sm text-slate-500 mt-1">Mã <span className="font-mono">{id}</span> không tồn tại.</p><Link to="/dashboard/patients" className="inline-flex mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm">Quay lại danh sách</Link></div>
 
   function startEdit(){ setEditForm({...patient}); setEditing(true) }
   async function saveEdit(e){
@@ -91,7 +91,7 @@ export default function PatientDetail(){
             <div className="text-xs text-slate-500 mt-2">{genderLabel[patient.gender] || patient.gender} · {ageFromDob(patient.date_of_birth)} · {patient.phone || '—'} {patient.email ? `· ${patient.email}`:''}</div>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <Link to={`/patients/${patient.id}/visit/new`} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700"><Plus size={16} /> Thêm lần khám</Link>
+            <Link to={`/dashboard/patients/${patient.id}/visit/new`} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700"><Plus size={16} /> Thêm lần khám</Link>
             <button onClick={startEdit} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium"><Edit3 size={16} /> Chỉnh sửa</button>
             <button onClick={()=>setConfirmArchive(true)} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium text-amber-700"><Archive size={16} /> Archive</button>
             <button onClick={()=>window.print()} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-medium no-print"><Printer size={16} /> In / Export PDF</button>
@@ -173,7 +173,7 @@ export default function PatientDetail(){
 
       {active==='Lịch sử khám' && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <div className="flex items-center justify-between mb-4"><h3 className="font-semibold">Lịch sử thăm khám ({visits.length})</h3><Link to={`/patients/${patient.id}/visit/new`} className="text-sm px-3 py-1.5 rounded-full bg-teal-600 text-white">+ Thêm lần khám</Link></div>
+          <div className="flex items-center justify-between mb-4"><h3 className="font-semibold">Lịch sử thăm khám ({visits.length})</h3><Link to={`/dashboard/patients/${patient.id}/visit/new`} className="text-sm px-3 py-1.5 rounded-full bg-teal-600 text-white">+ Thêm lần khám</Link></div>
           <VisitTimeline visits={visits} />
         </div>
       )}

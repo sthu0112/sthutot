@@ -35,7 +35,7 @@ export default function Patients(){
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-slate-900">Bệnh nhân</h1>
-        <Link to="/patients/new" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700"><Plus size={16} /> Thêm bệnh nhân</Link>
+        <Link to="/dashboard/patients/new" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700"><Plus size={16} /> Thêm bệnh nhân</Link>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap gap-3 items-center">
@@ -73,7 +73,7 @@ export default function Patients(){
                   <td className="px-4 py-3 text-xs text-slate-600">{formatDate(p.updated_at || p.created_at)}</td>
                   <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded-full border font-medium ${p.status==='follow_up' ? 'bg-amber-50 text-amber-700 border-amber-200' : p.status==='archived' ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>{p.status==='follow_up'?'Theo dõi':p.status==='archived'?'Lưu trữ':'Hoạt động'}</span></td>
                   <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
-                    <Link to={`/patients/${p.id}`} className="inline-flex px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800">Xem hồ sơ</Link>
+                    <Link to={`/dashboard/patients/${p.id}`} className="inline-flex px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800">Xem hồ sơ</Link>
                   </td>
                 </tr>
               ))}

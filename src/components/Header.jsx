@@ -59,7 +59,7 @@ export default function Header({ onMenu }) {
               ) : (
                 <ul className="divide-y divide-slate-100 max-h-80 overflow-auto">
                   {results.map(p=>(
-                    <li key={p.id||p.record_code} className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between" onClick={()=>{ setOpen(false); setQ(''); nav(`/patients/${p.id || p.record_code}`)}}>
+                    <li key={p.id||p.record_code} className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between" onClick={()=>{ setOpen(false); setQ(''); nav(`/dashboard/patients/${p.id || p.record_code}`)}}>
                       <div>
                         <div className="text-sm font-semibold text-slate-900">{p.full_name}</div>
                         <div className="text-xs font-mono text-slate-500">{p.record_code} {p.phone? `· ${p.phone}`:''}</div>

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ToastProvider } from './components/Toast'
 import AppLayout from './layouts/AppLayout'
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
@@ -24,16 +25,17 @@ function Protected({ children }) {
 function PublicOnly({ children }) {
   const { isAuthenticated, loading } = useAuth()
   if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500">Đang tải...</div>
-  if (isAuthenticated) return <Navigate to="/" replace />
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />
   return children
 }
 
 function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
-      <Route path="/" element={<Protected><AppLayout /></Protected>}>
+      <Route path="/dashboard" element={<Protected><AppLayout /></Protected>}>
         <Route index element={<Dashboard />} />
         <Route path="patients" element={<Patients />} />
         <Route path="patients/new" element={<PatientNew />} />
@@ -45,6 +47,8 @@ function AppRoutes() {
         <Route path="stats" element={<Stats />} />
         <Route path="settings" element={<Settings />} />
       </Route>
+      {/* legacy / -> dashboard for authed */}
+      <Route path="/app" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

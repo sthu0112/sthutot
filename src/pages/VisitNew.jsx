@@ -34,7 +34,7 @@ export default function VisitNew(){
       if (isDemoMode) {
         const visit = demoStore.createVisit(patient.id, payload)
         toast.push('Đã tạo lần khám','success')
-        nav(`/patients/${patient.id}`)
+        nav(`/dashboard/patients/${patient.id}`)
       } else {
         const { data: visit, error } = await supabase.from('visits').insert({ patient_id: patient.id, doctor_id: (await supabase.auth.getUser()).data.user?.id, visit_date: payload.visit_date, reason: payload.reason, symptoms: payload.symptoms, clinical_findings: payload.clinical_findings, diagnosis: payload.diagnosis, treatment_plan: payload.treatment_plan, skincare_advice: payload.skincare_advice, follow_up_date: payload.follow_up_date || null, notes: payload.notes, status: payload.status }).select().single()
         if (error) throw error
@@ -43,7 +43,7 @@ export default function VisitNew(){
         }
         await supabase.from('audit_logs').insert({ user_id: (await supabase.auth.getUser()).data.user?.id, action:'create_visit', table_name:'visits', record_id: visit.id })
         toast.push('Đã tạo lần khám','success')
-        nav(`/patients/${patient.id}`)
+        nav(`/dashboard/patients/${patient.id}`)
       }
     } catch(err){ toast.push(err.message,'error') }
     finally{ setLoading(false) }
