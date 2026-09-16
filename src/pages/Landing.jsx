@@ -55,6 +55,7 @@ export default function Landing() {
             <a href="#workflow" className="hover:opacity-70">Quy trình</a>
             <Link to="/dat-lich" className="hover:opacity-70">Đặt lịch</Link>
             <Link to="/tro-ly-ai" className="hover:opacity-70">Hỏi AI</Link>
+            <Link to="/cam-nang" className="hover:opacity-70">Cẩm nang</Link>
           </nav>
           <div className="flex items-center gap-3">
             {isAuthenticated ? (

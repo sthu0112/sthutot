@@ -62,7 +62,7 @@ export default function Booking() {
 
   const [form, setForm] = useState({
     specialty_slug: params.get('chuyen-khoa') || '',
-    symptoms: '',
+    symptoms: params.get('van-de') || '',
     doctor_user_id: '',
     doctor_name: params.get('bac-si') || '',
     date: '',
