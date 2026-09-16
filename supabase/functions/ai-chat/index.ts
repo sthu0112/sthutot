@@ -1,8 +1,9 @@
 // DermaCare Edge Function: ai-chat
-// Trợ lý da liễu AI — key Gemini giữ server-side, web chỉ gọi qua đây.
+// Trợ lý da liễu AI — key Groq giữ server-side, web chỉ gọi qua đây.
+// Kho kiến thức kb.json KHÔNG bị thay đổi khi đổi nhà cung cấp AI.
 // Deploy: Supabase Dashboard -> Edge Functions -> New Function (tên ai-chat) -> dán file này
-//         + thêm secret GEMINI_API_KEY (Project Settings -> Edge Functions -> Secrets)
-// Secrets (optional): GEMINI_API_KEY (bắt buộc), AI_MODEL (mặc định gemini-2.0-flash)
+//         + thêm secret GROQ_API_KEY (Project Settings -> Edge Functions -> Secrets)
+// Secrets (optional): GROQ_API_KEY (bắt buộc), AI_MODEL (mặc định llama-3.3-70b-versatile)
 
 import kb from './kb.json' with { type: 'json' }
 
@@ -12,8 +13,8 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const MODEL = Deno.env.get('AI_MODEL') ?? 'gemini-2.0-flash'
-const API_KEY = Deno.env.get('GEMINI_API_KEY') ?? ''
+const MODEL = Deno.env.get('AI_MODEL') ?? 'llama-3.3-70b-versatile'
+const API_KEY = Deno.env.get('GROQ_API_KEY') ?? ''
 
 type Doc = { source: string; title: string; content: string }
 const DOCS = kb as Doc[]
@@ -100,33 +101,32 @@ Deno.serve(async (req) => {
   const context = retrieve(lastUser.content)
   const suggested_specialty = guessSpecialty(lastUser.content)
 
-  const contents = messages.slice(-6).map((m) => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content.slice(0, 2000) }],
-  }))
+  // Groq dùng API tương thích OpenAI: system + lịch sử hội thoại
+  const chatMessages = [
+    { role: 'system', content: SYSTEM_PROMPT + (context ? `\n\nTÀI LIỆU THAM KHẢO:${context}` : '') },
+    ...messages.slice(-6).map((m) => ({ role: m.role, content: m.content.slice(0, 2000) })),
+  ]
 
-  const geminiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM_PROMPT + (context ? `\n\nTÀI LIỆU THAM KHẢO:${context}` : '') }] },
-        contents,
-        generationConfig: { temperature: 0.4, maxOutputTokens: 500 },
-      }),
-    },
-  )
+  const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${API_KEY}` },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: chatMessages,
+      temperature: 0.4,
+      max_tokens: 500,
+    }),
+  })
 
-  if (!geminiRes.ok) {
-    const errText = await geminiRes.text()
-    console.error('Gemini error', geminiRes.status, errText.slice(0, 300))
+  if (!groqRes.ok) {
+    const errText = await groqRes.text()
+    console.error('Groq error', groqRes.status, errText.slice(0, 300))
     return new Response(JSON.stringify({ error: 'AI đang bận, thử lại sau', offline: true }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 
-  const data = await geminiRes.json()
+  const data = await groqRes.json()
   const reply: string =
-    data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('').trim() ||
+    data?.choices?.[0]?.message?.content?.trim() ||
     'Mình chưa hiểu rõ, bạn mô tả thêm triệu chứng giúp mình nhé.'
 
   return new Response(JSON.stringify({ reply, suggested_specialty }), {
