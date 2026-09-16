@@ -31,8 +31,24 @@ export async function askAI(messages) {
 }
 
 function offlineReply(messages) {
-  const all = messages.map((m) => m.content).join('\n')
-  const slug = guessSpecialtyFromText(all)
+  const userMsgs = messages.filter((m) => m.role === 'user')
+  const last = userMsgs[userMsgs.length - 1]?.content || ''
+
+  // Chào hỏi xã giao: không đoán bệnh bừa
+  if (/^(xin chào|chào|chao|hello|hi|hey|alo|yo|hola|chào bạn|chao ban)[\s!.,]*$/i.test(last.trim())) {
+    return {
+      reply: 'Chào bạn, mình là trợ lý da liễu DermaCare. Bạn bao nhiêu tuổi và đang gặp vấn đề da gì? Kể càng cụ thể (vị trí, bao lâu, ngứa/đau) mình định hướng càng chuẩn nhé.',
+      level: 'none',
+      suggested_specialty: null,
+      skintype: null,
+      quick: ['Tôi bị mụn', 'Da bị ngứa', 'Tư vấn loại da'],
+      sources: [],
+      source: 'offline',
+    }
+  }
+
+  // Chỉ đoán theo tin nhắn MỚI NHẤT, không lôi chuyện cũ vào
+  const slug = guessSpecialtyFromText(last)
   const spec = slug ? specialtyBySlug(slug) : null
   if (spec) {
     return {

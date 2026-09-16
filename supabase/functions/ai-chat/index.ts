@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error('KB load failed', e)
   }
-  const fallbackSpecialty = guessSpecialty(messages.map((m) => m.content).join('\n'))
+  const fallbackSpecialty = guessSpecialty(lastUser.content)
 
   const chatMessages = [
     { role: 'system', content: SYSTEM_PROMPT + (context ? `\n\nTÀI LIỆU THAM KHẢO:\n${context}` : '') },
