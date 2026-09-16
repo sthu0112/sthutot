@@ -1,8 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const demoMode = import.meta.env.VITE_DEMO_MODE === 'demo' || !url || url.includes('placeholder') || !anonKey || anonKey.includes('placeholder')
+// Đọc cấu hình lúc chạy từ window.__DERMA_ENV__ (do scripts/gen-env.js sinh ra lúc build),
+// fallback sang import.meta.env cho môi trường dev.
+const RUNTIME = (typeof window !== 'undefined' && window.__DERMA_ENV__) || {}
+const IM = (typeof import.meta !== 'undefined' && import.meta.env) || {}
+const pick = (k) => RUNTIME[k] || IM[k] || ''
+
+const url = pick('VITE_SUPABASE_URL')
+const anonKey = pick('VITE_SUPABASE_ANON_KEY')
+const demoMode = pick('VITE_DEMO_MODE') === 'demo' || !url || url.includes('placeholder') || !anonKey || anonKey.includes('placeholder')
 
 export const isDemoMode = demoMode
 

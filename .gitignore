@@ -27,3 +27,5 @@ dist-ssr
 .env*
 
 supabase/.temp
+
+public/env.js
