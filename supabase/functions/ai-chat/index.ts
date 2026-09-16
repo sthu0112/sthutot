@@ -1,11 +1,24 @@
 // DermaCare Edge Function: ai-chat
 // Trợ lý da liễu AI — key Groq giữ server-side, web chỉ gọi qua đây.
 // Kho kiến thức kb.json KHÔNG bị thay đổi khi đổi nhà cung cấp AI.
-// Deploy: Supabase Dashboard -> Edge Functions -> New Function (tên ai-chat) -> dán file này
+// Deploy: Supabase Dashboard -> Edge Functions -> New Function (tên ai-chat) -> dán nguyên file này
 //         + thêm secret GROQ_API_KEY (Project Settings -> Edge Functions -> Secrets)
+// Kho kb.json được function tự tải từ repo GitHub (đã public), KHÔNG cần upload thêm file nào.
 // Secrets (optional): GROQ_API_KEY (bắt buộc), AI_MODEL (mặc định llama-3.3-70b-versatile)
 
-import kb from './kb.json' with { type: 'json' }
+// Nguồn sự thật của kho kiến thức (file kb.json cùng thư mục, đã push GitHub)
+const KB_URL = 'https://raw.githubusercontent.com/sthu0112/sthutot/main/supabase/functions/ai-chat/kb.json'
+
+type Doc = { source: string; title: string; content: string }
+let KB_CACHE: Doc[] | null = null
+
+async function loadKB(): Promise<Doc[]> {
+  if (KB_CACHE) return KB_CACHE
+  const res = await fetch(KB_URL)
+  if (!res.ok) throw new Error(`KB fetch failed: ${res.status}`)
+  KB_CACHE = (await res.json()) as Doc[]
+  return KB_CACHE
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,9 +29,6 @@ const corsHeaders = {
 const MODEL = Deno.env.get('AI_MODEL') ?? 'llama-3.3-70b-versatile'
 const API_KEY = Deno.env.get('GROQ_API_KEY') ?? ''
 
-type Doc = { source: string; title: string; content: string }
-const DOCS = kb as Doc[]
-
 // Tách từ tiếng Việt đơn giản để chấm điểm tài liệu liên quan
 function keywords(text: string): string[] {
   return text
@@ -28,10 +38,10 @@ function keywords(text: string): string[] {
     .filter((w) => w.length > 2)
 }
 
-function retrieve(question: string, maxChars = 6000): string {
+function retrieve(docs: Doc[], question: string, maxChars = 6000): string {
   const keys = new Set(keywords(question))
   if (!keys.size) return ''
-  const scored = DOCS.map((d) => {
+  const scored = docs.map((d) => {
     const body = `${d.title} ${d.content}`.toLowerCase()
     let score = 0
     for (const k of keys) if (body.includes(k)) score += k.length > 4 ? 2 : 1
@@ -98,7 +108,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Thiếu tin nhắn' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 
-  const context = retrieve(lastUser.content)
+  const context = retrieve(await loadKB().catch(() => [] as Doc[]), lastUser.content)
   const suggested_specialty = guessSpecialty(lastUser.content)
 
   // Groq dùng API tương thích OpenAI: system + lịch sử hội thoại
