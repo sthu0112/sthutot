@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ShieldCheck, Database, Image as ImageIcon, ClipboardList, Search, BarChart3, Users, Stethoscope, ArrowRight, Check, FileText, Activity, HeartPulse, Layers, Clock, Award, Lock } from 'lucide-react'
 import { useAuth, homeByRole } from '../contexts/AuthContext'
 import { playClick } from '../utils/sound'
+import { AIChatWidget } from './AIChat'
 
 function FeatureCard({ icon: Icon, title, desc, delay = 0 }) {
   return (
@@ -53,6 +54,7 @@ export default function Landing() {
             <a href="#security" className="hover:opacity-70">Bảo mật</a>
             <a href="#workflow" className="hover:opacity-70">Quy trình</a>
             <Link to="/dat-lich" className="hover:opacity-70">Đặt lịch</Link>
+            <Link to="/tro-ly-ai" className="hover:opacity-70">Hỏi AI</Link>
           </nav>
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
@@ -293,6 +295,8 @@ export default function Landing() {
           <BarChart3 size={14} strokeWidth={1.5} /> © 2026 DermaCare — Secure Dermatology Records · Demo data, not real patients
         </div>
       </section>
+
+      <AIChatWidget />
     </div>
   )
 }

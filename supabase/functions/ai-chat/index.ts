@@ -1,0 +1,135 @@
+// DermaCare Edge Function: ai-chat
+// Trợ lý da liễu AI — key Gemini giữ server-side, web chỉ gọi qua đây.
+// Deploy: Supabase Dashboard -> Edge Functions -> New Function (tên ai-chat) -> dán file này
+//         + thêm secret GEMINI_API_KEY (Project Settings -> Edge Functions -> Secrets)
+// Secrets (optional): GEMINI_API_KEY (bắt buộc), AI_MODEL (mặc định gemini-2.0-flash)
+
+import kb from './kb.json' with { type: 'json' }
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+const MODEL = Deno.env.get('AI_MODEL') ?? 'gemini-2.0-flash'
+const API_KEY = Deno.env.get('GEMINI_API_KEY') ?? ''
+
+type Doc = { source: string; title: string; content: string }
+const DOCS = kb as Doc[]
+
+// Tách từ tiếng Việt đơn giản để chấm điểm tài liệu liên quan
+function keywords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 2)
+}
+
+function retrieve(question: string, maxChars = 6000): string {
+  const keys = new Set(keywords(question))
+  if (!keys.size) return ''
+  const scored = DOCS.map((d) => {
+    const body = `${d.title} ${d.content}`.toLowerCase()
+    let score = 0
+    for (const k of keys) if (body.includes(k)) score += k.length > 4 ? 2 : 1
+    return { d, score }
+  })
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2)
+  let out = ''
+  for (const { d } of scored) {
+    const chunk = `\n\n[Nguồn: ${d.title}]\n${d.content.slice(0, 3000)}`
+    if ((out + chunk).length > maxChars) break
+    out += chunk
+  }
+  return out
+}
+
+const SPECIALTY_HINTS: Array<[string, string[]]> = [
+  ['mun-trung-ca-seo', ['mụn', 'thâm', 'sẹo rỗ', 'đầu đen']],
+  ['viem-da-di-ung', ['ngứa', 'mề đay', 'dị ứng', 'chàm', 'mẩn']],
+  ['sac-to-nam', ['nám', 'tàn nhang', 'sắc tố', 'đồi mồi']],
+  ['vay-nen-man-tinh', ['vảy nến', 'tiết bã', 'rosacea', 'bong vảy']],
+  ['nhiem-trung-da', ['nấm', 'lang ben', 'herpes', 'zona', 'chốc', 'viêm nang']],
+  ['toc-da-dau', ['rụng tóc', 'hói', 'gàu', 'da đầu']],
+  ['tre-hoa-tham-my', ['lão hóa', 'nếp nhăn', 'lỗ chân lông', 'trẻ hóa']],
+  ['not-ruoi-ung-thu', ['nốt ruồi', 'tầm soát', 'dày sừng']],
+]
+
+function guessSpecialty(text: string): string | null {
+  const t = text.toLowerCase()
+  for (const [slug, keys] of SPECIALTY_HINTS) {
+    if (keys.some((k) => t.includes(k))) return slug
+  }
+  return null
+}
+
+const SYSTEM_PROMPT = `Bạn là trợ lý da liễu của DermaCare (Việt Nam), tư vấn sơ bộ, thân thiện, xưng "mình", gọi người dùng là "bạn".
+Quy tắc:
+- Trả lời NGẮN GỌN (tối đa 150 từ), tiếng Việt, dễ hiểu, dùng gạch đầu dòng khi liệt kê.
+- Chỉ dựa vào TÀI LIỆU THAM KHẢO dưới đây + kiến thức da liễu phổ thông. Không bịa tên thuốc liều lượng cụ thể.
+- KHÔNG chẩn đoán chắc chắn ("bạn bị X"); chỉ nói "có thể liên quan đến...", "giống biểu hiện của...".
+- Dấu hiệu nặng (lan nhanh, đau nhiều, sốt, mủ nhiều, nốt ruồi đổi dạng/chảy máu) -> khuyên đi khám sớm.
+- Kết thúc bằng 1 câu gợi ý đặt lịch đúng chuyên khoa khi phù hợp.
+- Từ chối lịch sự các câu hỏi ngoài da liễu/sức khỏe da.`
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
+  if (!API_KEY) {
+    return new Response(JSON.stringify({ error: 'AI chưa được cấu hình', offline: true }), { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
+
+  let body: { messages?: Array<{ role: string; content: string }> }
+  try {
+    body = await req.json()
+  } catch {
+    return new Response(JSON.stringify({ error: 'Body phải là JSON' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
+  const messages = (body.messages ?? []).filter((m) => m.role === 'user' || m.role === 'assistant').slice(-10)
+  const lastUser = [...messages].reverse().find((m) => m.role === 'user')
+  if (!lastUser?.content?.trim()) {
+    return new Response(JSON.stringify({ error: 'Thiếu tin nhắn' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
+
+  const context = retrieve(lastUser.content)
+  const suggested_specialty = guessSpecialty(lastUser.content)
+
+  const contents = messages.slice(-6).map((m) => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content.slice(0, 2000) }],
+  }))
+
+  const geminiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM_PROMPT + (context ? `\n\nTÀI LIỆU THAM KHẢO:${context}` : '') }] },
+        contents,
+        generationConfig: { temperature: 0.4, maxOutputTokens: 500 },
+      }),
+    },
+  )
+
+  if (!geminiRes.ok) {
+    const errText = await geminiRes.text()
+    console.error('Gemini error', geminiRes.status, errText.slice(0, 300))
+    return new Response(JSON.stringify({ error: 'AI đang bận, thử lại sau', offline: true }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
+
+  const data = await geminiRes.json()
+  const reply: string =
+    data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('').trim() ||
+    'Mình chưa hiểu rõ, bạn mô tả thêm triệu chứng giúp mình nhé.'
+
+  return new Response(JSON.stringify({ reply, suggested_specialty }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+})
