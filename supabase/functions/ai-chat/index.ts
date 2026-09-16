@@ -23,7 +23,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const MODEL = Deno.env.get('AI_MODEL') ?? 'llama-3.3-70b-versatile'
+const MODEL = Deno.env.get('AI_MODEL') ?? 'openai/gpt-oss-120b'
 const API_KEY = Deno.env.get('GROQ_API_KEY') ?? ''
 
 function keywords(text: string): string[] {
