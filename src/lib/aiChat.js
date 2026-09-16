@@ -18,6 +18,7 @@ export async function askAI(messages) {
           suggested_specialty: data.suggested_specialty || null,
           skintype: data.skintype || null,
           quick: Array.isArray(data.quick) ? data.quick.slice(0, 3) : [],
+          sources: Array.isArray(data.sources) ? data.sources.slice(0, 3) : [],
           source: 'ai',
         }
       }
@@ -42,6 +43,7 @@ function offlineReply(messages) {
       suggested_specialty: slug,
       skintype: null,
       quick: ['Vài ngày', '1-2 tuần', 'Hơn 1 tháng'],
+      sources: [],
       source: 'offline',
     }
   }
@@ -54,6 +56,7 @@ function offlineReply(messages) {
     suggested_specialty: null,
     skintype: null,
     quick: ['Mụn', 'Ngứa / dị ứng', 'Nám / sắc tố'],
+    sources: [],
     source: 'offline',
   }
 }

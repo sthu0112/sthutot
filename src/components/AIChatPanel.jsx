@@ -126,13 +126,13 @@ export default function AIChatPanel({ compact = false }) {
       const done = {
         ...updated,
         title: threadTitle(next),
-        messages: [...next, { role: 'assistant', content: res.reply, level: res.level, suggested_specialty: res.suggested_specialty, skintype: res.skintype, quick: res.quick, source: res.source }],
+        messages: [...next, { role: 'assistant', content: res.reply, level: res.level, suggested_specialty: res.suggested_specialty, skintype: res.skintype, quick: res.quick, sources: res.sources, source: res.source }],
       }
       saveThread(done)
       persist(loadThreads(), done.id)
     } catch {
       playClick('error')
-      const done = { ...updated, messages: [...next, { role: 'assistant', content: 'Mạng đang bận, bạn thử lại sau ít phút nhé.', level: 'none', suggested_specialty: null, skintype: null, quick: [], source: 'offline' }] }
+      const done = { ...updated, messages: [...next, { role: 'assistant', content: 'Mạng đang bận, bạn thử lại sau ít phút nhé.', level: 'none', suggested_specialty: null, skintype: null, quick: [], sources: [], source: 'offline' }] }
       saveThread(done)
       persist(loadThreads(), done.id)
     } finally {
@@ -177,6 +177,9 @@ export default function AIChatPanel({ compact = false }) {
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[88%] px-4 py-3 text-[14px] leading-[1.5] ${m.role === 'user' ? 'bg-forest text-snow rounded-2xl rounded-br-md' : 'bg-stone text-forest rounded-2xl rounded-bl-md'}`}>
               <div className="whitespace-pre-wrap">{m.content}</div>
+              {m.role === 'assistant' && Array.isArray(m.sources) && m.sources.length > 0 && (
+                <div className="mt-1.5 text-[11px] opacity-70">Dựa trên: {m.sources.join(' · ')}</div>
+              )}
               {m.role === 'assistant' && <AssistantCards m={m} threadMessages={messages} />}
               {m.role === 'assistant' && m.source === 'offline' && i > 0 && (
                 <div className="text-[11px] opacity-60 mt-1">Chế độ offline — AI đầy đủ cần cấu hình key</div>

@@ -30,26 +30,35 @@ function keywords(text: string): string[] {
   return text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter((w) => w.length > 2)
 }
 
-function retrieve(docs: Doc[], question: string, maxChars = 6000): string {
+function retrieve(docs: Doc[], question: string, maxChars = 12000): { text: string; sources: string[] } {
   const keys = new Set(keywords(question))
-  if (!keys.size) return ''
+  if (!keys.size) return { text: '', sources: [] }
   const scored = docs
     .map((d) => {
+      const title = d.title.toLowerCase()
       const body = `${d.title} ${d.content}`.toLowerCase()
       let score = 0
-      for (const k of keys) if (body.includes(k)) score += k.length > 4 ? 2 : 1
+      for (const k of keys) {
+        if (title.includes(k)) score += 6 // khớp tiêu đề ăn điểm gấp
+        else if (body.includes(k)) score += k.length > 4 ? 2 : 1
+      }
+      // thưởng khi nhiều từ khóa cùng trúng 1 tài liệu (đúng chủ đề, không lan man)
+      const hits = [...keys].filter((k) => body.includes(k)).length
+      if (hits >= 3) score += hits
       return { d, score }
     })
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 2)
+    .slice(0, 3)
   let out = ''
+  const sources: string[] = []
   for (const { d } of scored) {
-    const chunk = `\n\n[Nguồn: ${d.title}]\n${d.content.slice(0, 3000)}`
+    const chunk = `\n\n[Nguồn: ${d.title}]\n${d.content.slice(0, 4500)}`
     if ((out + chunk).length > maxChars) break
     out += chunk
+    sources.push(d.title.replace(/\.(docx|pdf)$/i, '').trim())
   }
-  return out
+  return { text: out, sources }
 }
 
 const SPECIALTY_HINTS: Array<[string, string[]]> = [
@@ -87,6 +96,18 @@ NGUYÊN TẮC VẬN HÀNH (bắt buộc): HỎI → HIỂU → PHÂN TÍCH → K
 10) ẢNH: không tự tạo ảnh bệnh, không khẳng định bệnh qua ảnh.
 11) CUỐI ĐÁNH GIÁ ghi đúng 1 dòng: "Lưu ý: thông tin chỉ tham khảo, không thay thế khám trực tiếp. Triệu chứng bất thường/kéo dài/nặng dần nên đi khám."
 12) Trả lời ngắn gọn (tối đa 180 từ), tiếng Việt.
+
+CHỐNG TRẢ LỜI CHUNG CHUNG (bắt buộc, kiểm tra trước khi gửi):
+- Mỗi câu trả lời phải nhắc lại ít nhất 1 chi tiết RIÊNG của người này (tuổi, vị trí, thời gian, đặc điểm họ vừa nói). Cấm trả lời mà thay tên bệnh khác vào vẫn đúng.
+- Mỗi câu trả lời phải chứa ít nhất 1 điểm kiến thức CỤ THỂ từ TÀI LIỆU THAM KHẢO (dấu hiệu, yếu tố liên quan, cách phân biệt), và nêu tên tài liệu đó trong câu, vd "theo tài liệu Mụn trứng cá...".
+- Cấm các câu xáo rỗng: "nhìn chung", "tùy cơ địa", "mỗi người mỗi khác", "bạn nên tham khảo ý kiến bác sĩ" đứng một mình. Lời khuyên phải gắn với tình trạng cụ thể vừa mô tả.
+- Không mở đầu mọi câu bằng một kiểu ("Dựa trên...", "Cảm ơn bạn..."). Đổi cách vào đề theo mạch hội thoại.
+- Câu hỏi tiếp theo phải là câu PHÂN BIỆT NHẤT lúc này (câu mà đáp án "có/không" làm thay đổi hướng đánh giá), không hỏi cho có.
+
+CHỐNG MÙI AI (viết như trợ lý da liễu người thật):
+- Cấm: "Với tư cách là AI...", "Tôi là mô hình...", emoji tràn lan (tối đa 1 emoji/câu trả lời), gạch đầu dòng cho mọi thứ, cấu trúc 3 đoạn đều nhau mọi lần, kết câu sáo rỗng kiểu "Hy vọng giúp ích cho bạn!".
+- Được: câu ngắn dài xen kẽ, thỉnh thoảng 1 câu cảm thán nhẹ, gọi lại chi tiết họ nói ("cái vùng trán nổi từ sau Tết mà bạn kể...").
+- Thuật ngữ y khoa dùng thì giải thích ngay bằng tiếng thường trong cùng câu.
 
 ĐỊNH DẠNG MÁY (bắt buộc ở CUỐI mỗi câu trả lời, trên dòng riêng, không giải thích):
 [TAGS level=<green|yellow|red|none> specialty=<slug 8 nhóm hoặc none> skintype=<oily|dry|combo|normal|sensitive|none> quick=<gợi ý ngắn cách nhau bằng |, tối đa 3, hoặc none>]
@@ -131,8 +152,11 @@ Deno.serve(async (req) => {
   }
 
   let context = ''
+  let sources: string[] = []
   try {
-    context = retrieve(await loadKB(), messages.map((m) => m.content).join('\n').slice(-1500))
+    const r = retrieve(await loadKB(), messages.map((m) => m.content).join('\n').slice(-1500))
+    context = r.text
+    sources = r.sources
   } catch (e) {
     console.error('KB load failed', e)
   }
@@ -165,6 +189,7 @@ Deno.serve(async (req) => {
       suggested_specialty: t.specialty ?? fallbackSpecialty,
       skintype: t.skintype,
       quick: t.quick,
+      sources,
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
   )
