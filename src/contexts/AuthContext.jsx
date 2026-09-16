@@ -3,7 +3,13 @@ import { supabase, isDemoMode } from '../lib/supabase'
 
 const AuthContext = createContext(null)
 
-const DEMO_PROFILE = { user_id:'demo-doctor', full_name:'BS. Demo (Da liễu)', role:'doctor', phone:'0901234567' }
+const DEMO_PROFILE = { user_id:'demo-patient', full_name:'Khách Demo', role:'patient', phone:'0901234567' }
+
+export function homeByRole(role) {
+  if (role === 'admin') return '/admin'
+  if (role === 'doctor' || role === 'staff') return '/bac-si'
+  return '/benh-nhan'
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -43,17 +49,20 @@ export function AuthProvider({ children }) {
       setProfile(data)
     } catch (e) {
       console.warn('fetchProfile failed', e)
-      setProfile({ user_id: userId, full_name: user?.email || 'Doctor', role:'doctor', phone:'' })
+      setProfile({ user_id: userId, full_name: user?.email || 'Khách hàng', role:'patient', phone:'' })
     } finally { setLoading(false) }
   }
 
   async function signIn(email, password) {
     if (isDemoMode) {
-      const role = email.includes('admin') ? 'admin' : email.includes('staff') ? 'staff' : 'doctor'
+      const lower = email.toLowerCase()
+      const role = lower.includes('admin') ? 'admin' : lower.includes('bs') || lower.includes('doctor') || lower.includes('bacsi') ? 'doctor' : 'patient'
       const saved = localStorage.getItem('dermacare_demo_auth')
       let existingPhone = '0901234567'
-      try { if (saved) { const p = JSON.parse(saved); if (p.phone) existingPhone = p.phone; if (p.email === email && p.phone) existingPhone = p.phone } } catch {}
-      const u = { id:'demo-doctor', email, full_name: role==='admin' ? 'Admin Demo' : role==='staff' ? 'Staff Demo' : 'BS. Demo', role, phone: existingPhone }
+      let existingName = role==='admin' ? 'Quản trị Demo' : role==='doctor' ? 'BS. Demo' : 'Khách Demo'
+      try { if (saved) { const p = JSON.parse(saved); if (p.email === email) { if (p.phone) existingPhone = p.phone; if (p.full_name) existingName = p.full_name; } } } catch {}
+      const uid = role==='admin' ? 'demo-admin' : role==='doctor' ? 'demo-doctor' : 'demo-patient'
+      const u = { id: uid, email, full_name: existingName, role, phone: existingPhone }
       // preserve full_name/phone if previously edited
       try {
         const prev = saved ? JSON.parse(saved) : null
@@ -68,7 +77,9 @@ export function AuthProvider({ children }) {
     return data
   }
 
-  async function signUp(email, password, full_name, role='doctor', phone='') {
+  async function signUp(email, password, full_name, role='patient', phone='') {
+    // role bác sĩ vẫn tồn tại ở backend (admin cấp), nhưng UI đăng ký chỉ cho patient
+    if (!['patient','doctor','admin','staff'].includes(role)) role = 'patient'
     if (isDemoMode) {
       // demo: lưu phone vào demo auth
       const u = await signIn(email, password)
@@ -171,7 +182,7 @@ export function AuthProvider({ children }) {
     return data
   }
 
-  const value = { user, profile, loading, signIn, signUp, signOut, resetPassword, reauthenticate, updateProfile, refreshProfile: ()=> user && fetchProfile(user.id), isDemoMode, isAuthenticated: !!user }
+  const value = { user, profile, loading, signIn, signUp, signOut, resetPassword, reauthenticate, updateProfile, refreshProfile: ()=> user && fetchProfile(user.id), isDemoMode, isAuthenticated: !!user, homeByRole, role: profile?.role || null }
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

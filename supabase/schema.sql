@@ -60,11 +60,19 @@ create table if not exists profiles (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+-- Safety: vá cột TRƯỚC khi tạo index (phòng bảng profiles tồn tại dở từ template khác)
+alter table profiles add column if not exists user_id uuid;
+alter table profiles add column if not exists full_name text;
+alter table profiles add column if not exists role text;
+alter table profiles add column if not exists phone text;
+alter table profiles add column if not exists avatar_url text;
+do $$ begin
+  alter table profiles add constraint profiles_user_id_unique unique (user_id);
+exception when duplicate_object then null; when others then null;
+end $$;
+
 create index if not exists idx_profiles_user_id on profiles(user_id);
 create index if not exists idx_profiles_role on profiles(role);
-
--- Migration: thêm cột phone nếu DB cũ chưa có
-alter table profiles add column if not exists phone text;
 
 -- Trigger: tự động tạo profile khi có user mới đăng ký (bảo mật: role mặc định doctor, lấy từ user_metadata)
 create or replace function handle_new_user()
@@ -113,6 +121,31 @@ create table if not exists patients (
   updated_at timestamptz default now(),
   constraint record_code_format check (record_code ~ '^DERM-[0-9]{4}-[0-9]{6}$')
 );
+-- Safety: vá cột patients TRƯỚC index (phòng bảng tồn tại dở)
+alter table patients add column if not exists record_code text;
+alter table patients add column if not exists full_name text;
+alter table patients add column if not exists date_of_birth date;
+alter table patients add column if not exists gender text;
+alter table patients add column if not exists phone text;
+alter table patients add column if not exists email text;
+alter table patients add column if not exists address text;
+alter table patients add column if not exists emergency_contact text;
+alter table patients add column if not exists skin_type text;
+alter table patients add column if not exists affected_areas text[];
+alter table patients add column if not exists allergies text;
+alter table patients add column if not exists medical_history text;
+alter table patients add column if not exists dermatology_history text;
+alter table patients add column if not exists current_medications text;
+alter table patients add column if not exists skincare_products text;
+alter table patients add column if not exists previous_treatments text;
+alter table patients add column if not exists status text;
+alter table patients add column if not exists is_archived boolean default false;
+alter table patients add column if not exists deleted_at timestamptz;
+alter table patients add column if not exists deleted_by uuid;
+alter table patients add column if not exists created_by uuid;
+alter table patients add column if not exists created_at timestamptz default now();
+alter table patients add column if not exists updated_at timestamptz default now();
+
 create index if not exists idx_patients_record_code on patients(record_code);
 create index if not exists idx_patients_full_name on patients(full_name);
 create index if not exists idx_patients_phone on patients(phone);
@@ -128,7 +161,7 @@ begin
     new.record_code := generate_record_code();
   end if;
   -- Normalize: ensure DERM- prefix (reject DER- legacy if inserted manually)
-  if new.record_code not ~ '^DERM-[0-9]{4}-[0-9]{6}$' then
+  if new.record_code !~ '^DERM-[0-9]{4}-[0-9]{6}$' then
     raise exception 'record_code must match DERM-YYYY-XXXXXX';
   end if;
   return new;
@@ -160,6 +193,19 @@ create table if not exists medical_histories (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+-- Safety: vá cột medical_histories TRƯỚC index
+alter table medical_histories add column if not exists patient_id uuid;
+alter table medical_histories add column if not exists skin_history text;
+alter table medical_histories add column if not exists allergies text;
+alter table medical_histories add column if not exists drug_allergies text;
+alter table medical_histories add column if not exists cosmetic_allergies text;
+alter table medical_histories add column if not exists family_history text;
+alter table medical_histories add column if not exists current_medications text;
+alter table medical_histories add column if not exists trigger_factors text;
+alter table medical_histories add column if not exists notes text;
+alter table medical_histories add column if not exists created_at timestamptz default now();
+alter table medical_histories add column if not exists updated_at timestamptz default now();
+
 create index if not exists idx_medical_histories_patient_id on medical_histories(patient_id);
 drop trigger if exists medical_histories_updated_at on medical_histories;
 create trigger medical_histories_updated_at before update on medical_histories for each row execute function trg_updated_at();
@@ -191,6 +237,31 @@ create table if not exists visits (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+-- Safety: vá cột visits TRƯỚC index
+alter table visits add column if not exists patient_id uuid;
+alter table visits add column if not exists doctor_id uuid;
+alter table visits add column if not exists visit_date date;
+alter table visits add column if not exists visit_time time;
+alter table visits add column if not exists chief_complaint text;
+alter table visits add column if not exists reason text;
+alter table visits add column if not exists history text;
+alter table visits add column if not exists symptoms text;
+alter table visits add column if not exists skin_exam jsonb;
+alter table visits add column if not exists clinical_findings text;
+alter table visits add column if not exists clinical_impression text;
+alter table visits add column if not exists diagnosis text;
+alter table visits add column if not exists differential_diagnosis text;
+alter table visits add column if not exists treatment_plan text;
+alter table visits add column if not exists treatment jsonb;
+alter table visits add column if not exists skincare_advice text;
+alter table visits add column if not exists follow_up_date date;
+alter table visits add column if not exists follow_up_notes text;
+alter table visits add column if not exists response_to_treatment text;
+alter table visits add column if not exists notes text;
+alter table visits add column if not exists status text;
+alter table visits add column if not exists created_at timestamptz default now();
+alter table visits add column if not exists updated_at timestamptz default now();
+
 create index if not exists idx_visits_patient_id on visits(patient_id);
 create index if not exists idx_visits_visit_date on visits(visit_date desc);
 create index if not exists idx_visits_doctor_id on visits(doctor_id);
@@ -211,6 +282,17 @@ create table if not exists medications (
   notes text,
   created_at timestamptz default now()
 );
+-- Safety: vá cột medications TRƯỚC index
+alter table medications add column if not exists visit_id uuid;
+alter table medications add column if not exists name text;
+alter table medications add column if not exists active_ingredient text;
+alter table medications add column if not exists dosage text;
+alter table medications add column if not exists frequency text;
+alter table medications add column if not exists duration text;
+alter table medications add column if not exists instructions text;
+alter table medications add column if not exists notes text;
+alter table medications add column if not exists created_at timestamptz default now();
+
 create index if not exists idx_medications_visit_id on medications(visit_id);
 
 -- 7) patient_images — Hình ảnh da liễu (lưu trong bucket luutruhoso)
@@ -228,6 +310,19 @@ create table if not exists patient_images (
   uploaded_by uuid references profiles(user_id),
   created_at timestamptz default now()
 );
+-- Safety: vá cột patient_images TRƯỚC index
+alter table patient_images add column if not exists patient_id uuid;
+alter table patient_images add column if not exists visit_id uuid;
+alter table patient_images add column if not exists storage_path text;
+alter table patient_images add column if not exists file_name text;
+alter table patient_images add column if not exists file_type text;
+alter table patient_images add column if not exists file_size int;
+alter table patient_images add column if not exists body_area text;
+alter table patient_images add column if not exists captured_at date;
+alter table patient_images add column if not exists notes text;
+alter table patient_images add column if not exists uploaded_by uuid;
+alter table patient_images add column if not exists created_at timestamptz default now();
+
 create index if not exists idx_patient_images_patient_id on patient_images(patient_id);
 create index if not exists idx_patient_images_visit_id on patient_images(visit_id);
 
@@ -244,6 +339,17 @@ create table if not exists attachments (
   uploaded_by uuid references profiles(user_id),
   created_at timestamptz default now()
 );
+-- Safety: vá cột attachments TRƯỚC index
+alter table attachments add column if not exists patient_id uuid;
+alter table attachments add column if not exists visit_id uuid;
+alter table attachments add column if not exists file_name text;
+alter table attachments add column if not exists file_path text;
+alter table attachments add column if not exists file_type text;
+alter table attachments add column if not exists file_size int;
+alter table attachments add column if not exists category text;
+alter table attachments add column if not exists uploaded_by uuid;
+alter table attachments add column if not exists created_at timestamptz default now();
+
 create index if not exists idx_attachments_patient_id on attachments(patient_id);
 create index if not exists idx_attachments_visit_id on attachments(visit_id);
 
@@ -259,6 +365,16 @@ create table if not exists audit_logs (
   metadata jsonb,
   created_at timestamptz default now()
 );
+-- Safety: vá cột audit_logs TRƯỚC index
+alter table audit_logs add column if not exists user_id uuid;
+alter table audit_logs add column if not exists action text;
+alter table audit_logs add column if not exists patient_id uuid;
+alter table audit_logs add column if not exists table_name text;
+alter table audit_logs add column if not exists resource_type text;
+alter table audit_logs add column if not exists record_id uuid;
+alter table audit_logs add column if not exists metadata jsonb;
+alter table audit_logs add column if not exists created_at timestamptz default now();
+
 create index if not exists idx_audit_logs_user_id on audit_logs(user_id);
 create index if not exists idx_audit_logs_patient_id on audit_logs(patient_id);
 create index if not exists idx_audit_logs_created_at on audit_logs(created_at desc);

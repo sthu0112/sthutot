@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ShieldCheck, Lock, Image as ImageIcon, ClipboardList, Eye, EyeOff, Stethoscope, ArrowRight, Sparkles } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 import { useToast } from '../components/Toast'
 import { playClick } from '../utils/sound'
 
@@ -10,9 +11,9 @@ const container = { hidden:{}, visible:{ transition:{ staggerChildren:0.07, dela
 const item = { hidden:{ opacity:0, y:12 }, visible:{ opacity:1, y:0, transition:{ duration:0.45, ease:[0.22,1,0.36,1] } } }
 
 export default function Login() {
-  const { signIn, resetPassword, isDemoMode } = useAuth()
-  const [email, setEmail] = useState('doctor@dermacare.demo')
-  const [password, setPassword] = useState('demo1234')
+  const { signIn, resetPassword, isDemoMode, homeByRole } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
@@ -32,11 +33,21 @@ export default function Login() {
     }
     setErr(''); setLoading(true)
     try {
-      await signIn(email, password)
+      const res = await signIn(email, password)
       setAttempts(0)
       playClick('success')
       toast.push('Đăng nhập thành công','success')
-      nav('/dashboard')
+      let role = res?.user?.role || res?.role || null
+      if (!role && !isDemoMode) {
+        try {
+          const uid = res?.user?.id || res?.id
+          if (uid) {
+            const { data } = await supabase.from('profiles').select('role').eq('user_id', uid).single()
+            role = data?.role || 'patient'
+          }
+        } catch {}
+      }
+      nav(role ? homeByRole(role) : '/benh-nhan')
     } catch (e2){
       playClick('error')
       const next = attempts + 1
@@ -76,8 +87,8 @@ export default function Login() {
             <div className="font-bold tracking-tight">DERMACARE</div>
             <span className="text-[11px] px-2 py-1 rounded-full bg-white/10 border border-white/15 text-teal-200">RECORDS</span>
           </motion.div>
-          <motion.h1 variants={item} className="text-[26px] font-extrabold leading-none mt-7">Đăng nhập<br/>bác sĩ</motion.h1>
-          <motion.p variants={item} className="text-sm text-slate-300 mt-3 leading-relaxed">Truy cập hồ sơ da liễu an toàn. RLS, bucket PRIVATE, audit đầy đủ.</motion.p>
+          <motion.h1 variants={item} className="text-[26px] font-extrabold leading-none mt-7">Đăng nhập<br/>DermaCare</motion.h1>
+          <motion.p variants={item} className="text-sm text-slate-300 mt-3 leading-relaxed">Bệnh nhân đặt lịch trong 2 phút. Bác sĩ & quản trị nhận thông báo realtime.</motion.p>
           <motion.div variants={container} className="mt-6 space-y-2.5 text-sm">
             <motion.div variants={item} className="flex items-center gap-2 text-slate-200"><ShieldCheck size={14} className="text-teal-400" /> Supabase Auth + RLS</motion.div>
             <motion.div variants={item} className="flex items-center gap-2 text-slate-200"><ImageIcon size={14} className="text-teal-400" /> Ảnh PRIVATE • signed URL</motion.div>
@@ -93,14 +104,14 @@ export default function Login() {
         <motion.div variants={container} initial="hidden" animate="visible" className="p-6 md:p-7">
           <motion.div variants={item} className="flex items-center justify-between">
             <h2 className="text-[20px] font-bold tracking-tight">Chào mừng trở lại</h2>
-            <span className="text-xs px-2 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-700 font-medium">Bác sĩ</span>
+            <span className="text-xs px-2 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium">Bệnh nhân • Bác sĩ • Admin</span>
           </motion.div>
           <motion.p variants={item} className="text-sm text-slate-500 mt-1">Dùng email phòng khám để tiếp tục</motion.p>
 
           {isDemoMode && (
             <motion.div variants={item} className="mt-4 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-              <div><b>Demo:</b> <span className="font-mono">doctor@dermacare.demo</span> / <span className="font-mono">demo1234</span> — nhập bất kỳ email cũng được</div>
+              <div><b>Demo:</b> thử <span className="font-mono">benhnhan@demo.vn</span> (bệnh nhân) • <span className="font-mono">bs@demo.vn</span> (bác sĩ) • <span className="font-mono">admin@demo.vn</span> (quản trị) — mật khẩu bất kỳ ≥6 ký tự</div>
             </motion.div>
           )}
 
@@ -127,7 +138,7 @@ export default function Login() {
 
             <motion.div variants={item} className="flex items-center justify-between text-sm pt-1">
               <button type="button" onClick={handleReset} className="text-slate-600 hover:text-slate-900 hover:underline underline-offset-4">Quên mật khẩu?</button>
-              <Link to="/register" onClick={()=>playClick('tap')} className="text-teal-700 font-semibold hover:underline underline-offset-4">Đăng ký bác sĩ</Link>
+              <Link to="/register" onClick={()=>playClick('tap')} className="text-teal-700 font-semibold hover:underline underline-offset-4">Tạo tài khoản</Link>
             </motion.div>
           </form>
 

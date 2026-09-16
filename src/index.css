@@ -2,8 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-* { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+* { font-family: 'Be Vietnam Pro', 'Inter', system-ui, -apple-system, sans-serif; }
 html { scroll-behavior: smooth; }
+body { overflow-x: hidden; background: #FFFFFF; }
+img { max-width: 100%; height: auto; }
 ::selection { background: #ccfbf1; color: #134e4a; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
