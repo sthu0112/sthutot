@@ -2,18 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
-* { font-family: 'Be Vietnam Pro', 'Inter', system-ui, -apple-system, sans-serif; }
+:root {
+  /* Seed design tokens */
+  --color-forest-depths: #1c3a13;
+  --color-lime-pulse: #d3fa99;
+  --color-sage-moss: #757c5d;
+  --color-olive-gold: #9f995b;
+  --color-eucalyptus: #698e79;
+  --color-snow-white: #fcfcf7;
+  --color-warm-stone: #eeeee9;
+  --color-frosted-glass: #c4c7c4;
+  --color-ash: #b3b3b3;
+  --color-pewter: #666666;
+  --color-ink: #000000;
+  --surface-page-canvas: #fcfcf7;
+  --surface-card-surface: #eeeee9;
+  --surface-dark-section: #1c3a13;
+  --surface-accent-highlight: #d3fa99;
+}
+
+* { font-family: 'Inter', 'Be Vietnam Pro', system-ui, -apple-system, sans-serif; }
 html { scroll-behavior: smooth; }
-body { overflow-x: hidden; background: #FFFFFF; }
+body { overflow-x: hidden; background: #fcfcf7; color: #1c3a13; }
 img { max-width: 100%; height: auto; }
-::selection { background: #ccfbf1; color: #134e4a; }
+::selection { background: #d3fa99; color: #1c3a13; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 ::-webkit-scrollbar-track { background: transparent; }
 
 /* Focus ring - consistent */
-*:focus-visible { outline: 2px solid #14b8a6; outline-offset: 2px; }
+*:focus-visible { outline: 2px solid #1c3a13; outline-offset: 2px; }
 
 /* Print / export */
 @media print { .no-print { display: none !important; } }

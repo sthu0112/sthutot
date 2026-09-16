@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ShieldCheck, Lock, Image as ImageIcon, ClipboardList, Eye, EyeOff, Stethoscope, ArrowRight, Sparkles } from 'lucide-react'
+import { ShieldCheck, Lock, Image as ImageIcon, ClipboardList, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../components/Toast'
 import { playClick } from '../utils/sound'
 
-const container = { hidden:{}, visible:{ transition:{ staggerChildren:0.07, delayChildren:0.15 } } }
-const item = { hidden:{ opacity:0, y:12 }, visible:{ opacity:1, y:0, transition:{ duration:0.45, ease:[0.22,1,0.36,1] } } }
+const container = { hidden: {}, visible: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } } }
+const item = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } } }
 
 export default function Login() {
   const { signIn, resetPassword, isDemoMode, homeByRole } = useAuth()
@@ -22,11 +22,11 @@ export default function Login() {
   const [attempts, setAttempts] = useState(0)
   const [lockUntil, setLockUntil] = useState(0)
 
-  async function handleSubmit(e){
+  async function handleSubmit(e) {
     e.preventDefault()
     playClick('tap')
     if (Date.now() < lockUntil) {
-      const sec = Math.ceil((lockUntil - Date.now())/1000)
+      const sec = Math.ceil((lockUntil - Date.now()) / 1000)
       setErr(`Tạm khóa ${sec}s do sai nhiều lần`)
       playClick('error')
       return
@@ -36,7 +36,7 @@ export default function Login() {
       const res = await signIn(email, password)
       setAttempts(0)
       playClick('success')
-      toast.push('Đăng nhập thành công','success')
+      toast.push('Đăng nhập thành công', 'success')
       let role = res?.user?.role || res?.role || null
       if (!role && !isDemoMode) {
         try {
@@ -48,7 +48,7 @@ export default function Login() {
         } catch {}
       }
       nav(role ? homeByRole(role) : '/benh-nhan')
-    } catch (e2){
+    } catch (e2) {
       playClick('error')
       const next = attempts + 1
       setAttempts(next)
@@ -63,88 +63,77 @@ export default function Login() {
       }
     } finally { setLoading(false) }
   }
-  async function handleReset(){
+  async function handleReset() {
     playClick('pop')
     if (!email) return setErr('Nhập email để đặt lại')
-    try { await resetPassword(email); toast.push('Đã gửi email đặt lại (nếu tồn tại)','success'); playClick('success') }
-    catch(e){ setErr(e.message); playClick('error') }
+    try { await resetPassword(email); toast.push('Đã gửi email đặt lại (nếu tồn tại)', 'success'); playClick('success') }
+    catch (e) { setErr(e.message); playClick('error') }
   }
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-teal-50 via-white to-slate-50 pointer-events-none" />
+    <div className="min-h-screen bg-snow flex items-center justify-center p-4 md:p-8">
       <motion.div
-        initial={{opacity:0, y:18, scale:0.98}}
-        animate={{opacity:1, y:0, scale:1}}
-        transition={{duration:0.6, ease:[0.22,1,0.36,1]}}
-        className="relative w-full max-w-[860px] grid md:grid-cols-[1.02fr_0.98fr] gap-0 rounded-[24px] overflow-hidden border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.10)] bg-white"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-[960px] grid md:grid-cols-2 rounded-[32px] overflow-hidden bg-stone"
       >
         {/* left - brand */}
-        <motion.div variants={container} initial="hidden" animate="visible" className="bg-slate-900 text-white p-7 md:p-8 flex flex-col relative overflow-hidden">
-          <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-teal-500/20 blur-3xl pointer-events-none" />
-          <motion.div variants={item} className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-teal-500 flex items-center justify-center"><Stethoscope size={18} /></div>
-            <div className="font-bold tracking-tight">DERMACARE</div>
-            <span className="text-[11px] px-2 py-1 rounded-full bg-white/10 border border-white/15 text-teal-200">RECORDS</span>
+        <motion.div variants={container} initial="hidden" animate="visible" className="bg-forest text-snow p-8 md:p-10 flex flex-col">
+          <motion.div variants={item} className="flex items-center gap-2">
+            <span className="font-medium tracking-tight text-[18px]">DermaCare</span>
+            <span className="w-2 h-2 rounded-full bg-lime" />
           </motion.div>
-          <motion.h1 variants={item} className="text-[26px] font-extrabold leading-none mt-7">Đăng nhập<br/>DermaCare</motion.h1>
-          <motion.p variants={item} className="text-sm text-slate-300 mt-3 leading-relaxed">Bệnh nhân đặt lịch trong 2 phút. Bác sĩ & quản trị nhận thông báo realtime.</motion.p>
-          <motion.div variants={container} className="mt-6 space-y-2.5 text-sm">
-            <motion.div variants={item} className="flex items-center gap-2 text-slate-200"><ShieldCheck size={14} className="text-teal-400" /> Supabase Auth + RLS</motion.div>
-            <motion.div variants={item} className="flex items-center gap-2 text-slate-200"><ImageIcon size={14} className="text-teal-400" /> Ảnh PRIVATE • signed URL</motion.div>
-            <motion.div variants={item} className="flex items-center gap-2 text-slate-200"><ClipboardList size={14} className="text-teal-400" /> Mã DERM-YYYY-XXXXXX</motion.div>
+          <motion.h1 variants={item} className="font-light text-[36px] md:text-[40px] leading-[1.1] tracking-[-0.4px] mt-8">Chào mừng<br />trở lại</motion.h1>
+          <motion.p variants={item} className="text-[16px] mt-4 leading-[1.5] opacity-90">Bệnh nhân đặt lịch trong 2 phút. Bác sĩ & quản trị nhận thông báo realtime.</motion.p>
+          <motion.div variants={container} className="mt-8 space-y-3 text-[16px]">
+            <motion.div variants={item} className="flex items-center gap-3"><ShieldCheck size={16} strokeWidth={1.5} /> Xác thực + phân quyền theo hàng</motion.div>
+            <motion.div variants={item} className="flex items-center gap-3"><ImageIcon size={16} strokeWidth={1.5} /> Ảnh riêng tư · liên kết có hạn</motion.div>
+            <motion.div variants={item} className="flex items-center gap-3"><ClipboardList size={16} strokeWidth={1.5} /> Mã DERM-YYYY-XXXXXX</motion.div>
           </motion.div>
-          <motion.div variants={item} className="mt-auto pt-8 flex items-center gap-2 text-xs text-slate-400">
-            <Link to="/" onClick={()=>playClick('pop')} className="hover:text-white inline-flex items-center gap-1">← Về trang chủ</Link>
-            <span>•</span><span className="inline-flex items-center gap-1"><Sparkles size={12} /> DEMO DATA</span>
+          <motion.div variants={item} className="mt-auto pt-10 text-[14px] opacity-70">
+            <Link to="/" onClick={() => playClick('pop')} className="underline underline-offset-4 decoration-[1.5px]">← Về trang chủ</Link>
           </motion.div>
         </motion.div>
 
         {/* right - form */}
-        <motion.div variants={container} initial="hidden" animate="visible" className="p-6 md:p-7">
-          <motion.div variants={item} className="flex items-center justify-between">
-            <h2 className="text-[20px] font-bold tracking-tight">Chào mừng trở lại</h2>
-            <span className="text-xs px-2 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium">Bệnh nhân • Bác sĩ • Admin</span>
-          </motion.div>
-          <motion.p variants={item} className="text-sm text-slate-500 mt-1">Dùng email phòng khám để tiếp tục</motion.p>
+        <motion.div variants={container} initial="hidden" animate="visible" className="bg-snow p-8 md:p-10">
+          <motion.h2 variants={item} className="font-light text-[32px] leading-[1.2] tracking-[-0.4px]">Đăng nhập</motion.h2>
+          <motion.p variants={item} className="text-[16px] text-pewter mt-2">Dùng email của bạn để tiếp tục</motion.p>
 
           {isDemoMode && (
-            <motion.div variants={item} className="mt-4 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-              <div><b>Demo:</b> thử <span className="font-mono">benhnhan@demo.vn</span> (bệnh nhân) • <span className="font-mono">bs@demo.vn</span> (bác sĩ) • <span className="font-mono">admin@demo.vn</span> (quản trị) — mật khẩu bất kỳ ≥6 ký tự</div>
+            <motion.div variants={item} className="mt-5 px-3 py-2.5 rounded-2xl bg-stone text-[14px] text-forest">
+              <span className="px-2 py-[6px] rounded-pill bg-lime text-[12px] font-medium mr-2">Demo</span>
+              Thử <span className="font-mono font-light">benhnhan@demo.vn</span> · <span className="font-mono font-light">bs@demo.vn</span> · <span className="font-mono font-light">admin@demo.vn</span> — mật khẩu bất kỳ ≥6 ký tự
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-3">
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <motion.label variants={item} className="block">
-              <span className="text-xs font-semibold tracking-widest text-slate-500">EMAIL</span>
-              <input onFocus={()=>playClick('pop')} value={email} onChange={e=>setEmail(e.target.value)} type="email" required placeholder="bacsi@benhvien.vn" className="mt-1.5 w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 text-sm transition" />
+              <span className="text-[12px] uppercase tracking-wide text-pewter font-medium">Email</span>
+              <input onFocus={() => playClick('pop')} value={email} onChange={e => setEmail(e.target.value)} type="email" required placeholder="ban@email.com" className="mt-2 w-full px-4 py-[14px] rounded-lg bg-transparent border-[1.5px] border-forest/30 text-[16px] text-forest placeholder:text-ash focus:outline-none focus:border-forest" />
             </motion.label>
             <motion.label variants={item} className="block">
-              <span className="text-xs font-semibold tracking-widest text-slate-500">MẬT KHẨU</span>
-              <div className="relative mt-1.5">
-                <input onFocus={()=>playClick('pop')} value={password} onChange={e=>setPassword(e.target.value)} type={showPassword ? 'text' : 'password'} required placeholder="••••••••" className="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 text-sm transition" />
-                <button type="button" onClick={()=>{ playClick('tap'); setShowPassword(s=>!s)}} className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition" aria-label="toggle">
+              <span className="text-[12px] uppercase tracking-wide text-pewter font-medium">Mật khẩu</span>
+              <div className="relative mt-2">
+                <input onFocus={() => playClick('pop')} value={password} onChange={e => setPassword(e.target.value)} type={showPassword ? 'text' : 'password'} required placeholder="••••••••" className="w-full px-4 py-[14px] pr-12 rounded-lg bg-transparent border-[1.5px] border-forest/30 text-[16px] placeholder:text-ash focus:outline-none focus:border-forest" />
+                <button type="button" onClick={() => { playClick('tap'); setShowPassword(s => !s) }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-stone text-pewter" aria-label="toggle">
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </motion.label>
 
-            {err && <motion.div variants={item} initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 flex gap-2"><Lock size={14} className="mt-0.5 shrink-0" />{err}</motion.div>}
+            {err && <motion.div variants={item} className="text-[14px] text-forest bg-stone rounded-2xl px-4 py-3 flex gap-2"><Lock size={15} className="mt-0.5 shrink-0" />{err}</motion.div>}
 
-            <motion.button variants={item} whileTap={{scale:0.98}} whileHover={{scale:1.01}} disabled={loading || Date.now() < lockUntil} className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 transition">
-              {loading ? 'Đang đăng nhập…' : Date.now() < lockUntil ? `Khóa ${Math.ceil((lockUntil-Date.now())/1000)}s` : <>Đăng nhập <ArrowRight size={16} /></>}
+            <motion.button variants={item} disabled={loading || Date.now() < lockUntil} className="w-full py-4 rounded-pill bg-forest text-snow text-[16px] hover:opacity-90 disabled:opacity-50 inline-flex items-center justify-center gap-2">
+              {loading ? 'Đang đăng nhập…' : Date.now() < lockUntil ? `Khóa ${Math.ceil((lockUntil - Date.now()) / 1000)}s` : <>Đăng nhập <ArrowRight size={16} strokeWidth={1.5} /></>}
             </motion.button>
 
-            <motion.div variants={item} className="flex items-center justify-between text-sm pt-1">
-              <button type="button" onClick={handleReset} className="text-slate-600 hover:text-slate-900 hover:underline underline-offset-4">Quên mật khẩu?</button>
-              <Link to="/register" onClick={()=>playClick('tap')} className="text-teal-700 font-semibold hover:underline underline-offset-4">Tạo tài khoản</Link>
+            <motion.div variants={item} className="flex items-center justify-between text-[16px] pt-1">
+              <button type="button" onClick={handleReset} className="underline underline-offset-4 decoration-[1.5px]">Quên mật khẩu?</button>
+              <Link to="/register" onClick={() => playClick('tap')} className="underline underline-offset-4 decoration-[1.5px] font-medium">Tạo tài khoản →</Link>
             </motion.div>
           </form>
-
-          <motion.div variants={item} className="mt-5 pt-4 border-t border-slate-100 text-xs text-slate-500 flex items-center gap-1.5">
-            <Lock size={12} /> Bảo vệ bởi <b>Supabase RLS</b> • Mã hoá • Audit
-          </motion.div>
         </motion.div>
       </motion.div>
     </div>
