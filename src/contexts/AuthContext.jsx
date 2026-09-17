@@ -53,22 +53,57 @@ export function AuthProvider({ children }) {
     } finally { setLoading(false) }
   }
 
+  // ---- Demo auth: mật khẩu thật, băm SHA-256, sai là từ chối ----
+  async function sha256hex(text) {
+    const input = 'dermacare$' + text
+    try {
+      if (crypto?.subtle) {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input))
+        return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('')
+      }
+    } catch {}
+    // Fallback sync khi không có SubtleCrypto
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57
+    for (let i = 0; i < input.length; i++) {
+      const ch = input.charCodeAt(i)
+      h1 = Math.imul(h1 ^ ch, 2654435761)
+      h2 = Math.imul(h2 ^ ch, 1597334677)
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
+    return (h2 >>> 0).toString(16) + (h1 >>> 0).toString(16)
+  }
+
+  // Tài khoản demo có sẵn (mật khẩu cố định, đã băm — không chấp nhận mật khẩu bịa)
+  const DEMO_SEEDS = [
+    { id: 'demo-admin', email: 'admin@demo.vn', passHash: 'b79431da49cd76b6ada5e83e9c5ca45a104e52a385167f5e92c50d5a46156774', full_name: 'Quản trị Demo', role: 'admin', phone: '0900000001' },
+    { id: 'demo-doctor', email: 'bs@demo.vn', passHash: 'f59c15440f5f9b4aaa66015c051e1aaf47eedd9945228641ce5c479b8187fd5e', full_name: 'BS. Demo', role: 'doctor', phone: '0900000002' },
+    { id: 'demo-patient', email: 'benhnhan@demo.vn', passHash: 'a14997b88dc43b40d9b2acac6f3818da80033ac2c50f4d6ed7fe2a25309b5cde', full_name: 'Khách Demo', role: 'patient', phone: '0900000003' },
+  ]
+  function demoUsers() {
+    try {
+      const raw = JSON.parse(localStorage.getItem('dermacare_demo_users') || '[]')
+      return Array.isArray(raw) ? raw : []
+    } catch { return [] }
+  }
+  function saveDemoUsers(list) {
+    try { localStorage.setItem('dermacare_demo_users', JSON.stringify(list)) } catch {}
+  }
+  function findDemoUser(email) {
+    const lower = (email || '').trim().toLowerCase()
+    return DEMO_SEEDS.find((u) => u.email === lower) || demoUsers().find((u) => u.email === lower) || null
+  }
+
   async function signIn(email, password) {
     if (isDemoMode) {
-      const lower = email.toLowerCase()
-      const role = lower.includes('admin') ? 'admin' : lower.includes('bs') || lower.includes('doctor') || lower.includes('bacsi') ? 'doctor' : 'patient'
-      const saved = localStorage.getItem('dermacare_demo_auth')
-      let existingPhone = '0901234567'
-      let existingName = role==='admin' ? 'Quản trị Demo' : role==='doctor' ? 'BS. Demo' : 'Khách Demo'
-      try { if (saved) { const p = JSON.parse(saved); if (p.email === email) { if (p.phone) existingPhone = p.phone; if (p.full_name) existingName = p.full_name; } } } catch {}
-      const uid = role==='admin' ? 'demo-admin' : role==='doctor' ? 'demo-doctor' : 'demo-patient'
-      const u = { id: uid, email, full_name: existingName, role, phone: existingPhone }
-      // preserve full_name/phone if previously edited
-      try {
-        const prev = saved ? JSON.parse(saved) : null
-        if (prev && prev.email === email) { if (prev.full_name) u.full_name = prev.full_name; if (prev.phone) u.phone = prev.phone }
-      } catch {}
-      setUser(u); setProfile({ user_id:u.id, full_name:u.full_name, role, phone: u.phone })
+      const em = (email || '').trim().toLowerCase()
+      if (!em) throw new Error('Vui lòng nhập email')
+      const record = findDemoUser(em)
+      if (!record) throw new Error('Email này chưa được đăng ký. Vui lòng đăng ký tài khoản trước.')
+      const hash = await sha256hex(password || '')
+      if (hash !== record.passHash) throw new Error('Mật khẩu không chính xác. Vui lòng thử lại.')
+      const u = { id: record.id, email: record.email, full_name: record.full_name, role: record.role, phone: record.phone }
+      setUser(u); setProfile({ user_id: u.id, full_name: u.full_name, role: u.role, phone: u.phone })
       localStorage.setItem('dermacare_demo_auth', JSON.stringify(u))
       return { user: u }
     }
@@ -81,18 +116,25 @@ export function AuthProvider({ children }) {
     // role bác sĩ vẫn tồn tại ở backend (admin cấp), nhưng UI đăng ký chỉ cho patient
     if (!['patient','doctor','admin','staff'].includes(role)) role = 'patient'
     if (isDemoMode) {
-      // demo: lưu phone vào demo auth
-      const u = await signIn(email, password)
-      // patch phone/full_name vào demo storage
-      try {
-        const saved = JSON.parse(localStorage.getItem('dermacare_demo_auth') || '{}')
-        saved.full_name = full_name
-        if (phone) saved.phone = phone
-        localStorage.setItem('dermacare_demo_auth', JSON.stringify(saved))
-        setUser(prev=> prev? {...prev, full_name, phone}: prev)
-        setProfile(prev=> prev? {...prev, full_name, phone}: prev)
-      } catch {}
-      return u
+      const em = (email || '').trim().toLowerCase()
+      if (findDemoUser(em)) throw new Error('Email này đã được đăng ký. Vui lòng đăng nhập.')
+      // role bác sĩ vẫn tồn tại ở backend (admin cấp), UI công khai chỉ tạo patient
+      const finalRole = role === 'patient' ? 'patient' : role
+      const record = {
+        id: 'demo-u-' + Math.random().toString(36).slice(2, 10),
+        email: em,
+        passHash: await sha256hex(password),
+        full_name,
+        role: finalRole,
+        phone: phone || '',
+      }
+      const list = demoUsers()
+      list.push(record)
+      saveDemoUsers(list)
+      const u = { id: record.id, email: record.email, full_name: record.full_name, role: record.role, phone: record.phone }
+      setUser(u); setProfile({ user_id: u.id, full_name: u.full_name, role: u.role, phone: u.phone })
+      localStorage.setItem('dermacare_demo_auth', JSON.stringify(u))
+      return { user: u }
     }
     // Validate phone before Supabase call
     if (phone && !/^(0|\+84)[0-9]{9,10}$/.test(phone.replace(/\s/g,''))) throw new Error('Số điện thoại không hợp lệ')
@@ -143,8 +185,11 @@ export function AuthProvider({ children }) {
     if (!email || !password) throw new Error('Vui lòng nhập email và mật khẩu')
     if (email.trim().toLowerCase() !== (user?.email || '').toLowerCase()) throw new Error('Email xác thực không khớp với tài khoản đang đăng nhập')
     if (isDemoMode) {
-      // Demo: chỉ cần password >=6, email khớp là pass (không check thật)
-      if (password.length < 6) throw new Error('Mật khẩu phải ít nhất 6 ký tự')
+      // Demo: so mật khẩu băm đã lưu, sai là từ chối
+      const record = findDemoUser(email.trim())
+      if (!record) throw new Error('Không tìm thấy tài khoản')
+      const hash = await sha256hex(password)
+      if (hash !== record.passHash) throw new Error('Mật khẩu không chính xác')
       return true
     }
     const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
@@ -165,6 +210,15 @@ export function AuthProvider({ children }) {
       setUser(updatedUser)
       setProfile(updatedProfile)
       localStorage.setItem('dermacare_demo_auth', JSON.stringify(updatedUser))
+      // đồng bộ vào danh sách tài khoản demo để lần đăng nhập sau vẫn đúng tên/SĐT
+      try {
+        const list = demoUsers()
+        const idx = list.findIndex((x) => x.email === (user?.email || '').toLowerCase())
+        if (idx >= 0) {
+          list[idx] = { ...list[idx], full_name: patch.full_name.trim(), phone }
+          saveDemoUsers(list)
+        }
+      } catch {}
       // audit local
       try {
         const raw = localStorage.getItem('dermacare_demo_v3')

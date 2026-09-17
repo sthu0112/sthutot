@@ -104,7 +104,7 @@ export default function Login() {
           {isDemoMode && (
             <motion.div variants={item} className="mt-5 px-3 py-2.5 rounded-2xl bg-stone text-[14px] text-forest">
               <span className="px-2 py-[6px] rounded-pill bg-lime text-[12px] font-medium mr-2">Demo</span>
-              Thử <span className="font-mono font-light">benhnhan@demo.vn</span> · <span className="font-mono font-light">bs@demo.vn</span> · <span className="font-mono font-light">admin@demo.vn</span> — mật khẩu bất kỳ ≥6 ký tự
+              Thử <span className="font-mono font-light">benhnhan@demo.vn</span>/<span className="font-mono font-light">Bn@2026</span> · <span className="font-mono font-light">bs@demo.vn</span>/<span className="font-mono font-light">Bs@2026</span> · <span className="font-mono font-light">admin@demo.vn</span>/<span className="font-mono font-light">Admin@2026</span> — sai mật khẩu sẽ bị từ chối
             </motion.div>
           )}
 
