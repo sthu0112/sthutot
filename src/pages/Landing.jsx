@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ShieldCheck, Database, Image as ImageIcon, ClipboardList, Search, BarChart3, Users, Stethoscope, ArrowRight, Check, FileText, Activity, HeartPulse, Layers, Clock, Award, Lock } from 'lucide-react'
+import { ShieldCheck, Database, Image as ImageIcon, ClipboardList, Search, Users, Stethoscope, ArrowRight, Check, FileText, Activity, HeartPulse, Layers, Clock, Award, Lock } from 'lucide-react'
 import { useAuth, homeByRole } from '../contexts/AuthContext'
 import { playClick } from '../utils/sound'
 import { AIChatWidget } from './AIChat'
@@ -63,7 +63,7 @@ export default function Landing() {
             ) : (
               <>
                 <Link to="/login" onClick={() => playClick('tap')} className="hidden sm:inline-flex px-6 py-4 rounded-pill bg-snow border-[1.5px] border-forest text-forest text-[16px] hover:opacity-80">Đăng nhập</Link>
-                <Link to="/dat-lich" onClick={() => playClick('tap')} className="px-6 py-4 rounded-pill bg-forest text-snow text-[16px] hover:opacity-90">Bắt đầu</Link>
+                <Link to="/register" onClick={() => playClick('tap')} className="px-6 py-4 rounded-pill bg-forest text-snow text-[16px] hover:opacity-90">Đăng ký</Link>
               </>
             )}
           </div>
@@ -170,27 +170,39 @@ export default function Landing() {
             </motion.div>
           </div>
 
-          {/* stats strip */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16"
-          >
-            {[
-              { k: 'Mã hồ sơ', v: 'DERM-YYYY-XXXXXX', d: 'Duy nhất, an toàn đồng thời' },
-              { k: 'Lưu trữ', v: 'luutruhoso', d: 'Riêng tư + liên kết có hạn' },
-              { k: 'Bảo mật', v: 'RLS + Audit', d: 'Phân quyền theo hàng' },
-              { k: 'Tích hợp', v: 'Supabase', d: 'Auth · DB · Storage' },
-            ].map((s) => (
-              <div key={s.k} className="bg-stone rounded-2xl p-4">
-                <div className="text-[12px] uppercase tracking-wide text-pewter">{s.k}</div>
-                <div className="font-mono font-light text-[16px] mt-1">{s.v}</div>
-                <div className="text-[12px] text-pewter">{s.d}</div>
-              </div>
-            ))}
-          </motion.div>
+          {/* TỔNG QUAN — thẻ thông tin thuần túy (không click), headline serif 1 dòng */}
+          <div className="mt-16 md:mt-20">
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="font-serif font-semibold text-forest whitespace-nowrap leading-[1.15] text-[clamp(22px,5.4vw,60px)]"
+            >
+              Mọi thứ bạn cần — gọn nhẹ
+            </motion.h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+              {[
+                { k: 'Chuyên khoa', v: '8 nhóm bệnh da', d: 'Mụn, viêm da, nám, nấm...' },
+                { k: 'Độ tuổi', v: 'Bé → ông bà', d: 'Nội dung theo từng lứa tuổi' },
+                { k: 'Đặt lịch', v: '5 phút online', d: '9 khung giờ mỗi ngày' },
+                { k: 'Đồng hành', v: 'AI + Cẩm nang', d: 'Hỏi đáp và chăm sóc tại nhà' },
+              ].map((s, i) => (
+                <motion.div
+                  key={s.k}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                  className="bg-white rounded-2xl border border-forest/10 p-5 cursor-default"
+                >
+                  <div className="text-[12px] uppercase tracking-[0.12em] text-pewter">{s.k}</div>
+                  <div className="font-serif font-semibold text-forest text-[22px] leading-snug mt-2">{s.v}</div>
+                  <div className="text-[13px] text-pewter mt-1">{s.d}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -292,10 +304,70 @@ export default function Landing() {
             <Link to="/register" onClick={() => playClick('tap')} className="px-6 py-4 rounded-pill bg-transparent border-[1.5px] border-snow text-snow text-[16px] hover:opacity-80">Tạo tài khoản</Link>
           </div>
         </motion.div>
-        <div className="flex items-center gap-2 mt-8 text-[12px] text-pewter">
-          <BarChart3 size={14} strokeWidth={1.5} /> © 2026 DermaCare — Secure Dermatology Records · Demo data, not real patients
+      {/* FOOTER đầy đủ — gọn */}
+      <footer className="bg-forest text-snow">
+        <div className="max-w-[1200px] mx-auto px-6 pt-10 pb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.55 }}
+            className="flex flex-col md:flex-row md:items-center gap-4 justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-lime text-forest flex items-center justify-center"><Stethoscope size={19} strokeWidth={1.5} /></div>
+              <div>
+                <div className="font-medium tracking-tight text-[18px]">DermaCare</div>
+                <div className="text-[13px] opacity-70">Làn da khỏe, bắt đầu từ một lịch hẹn.</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-[14px]">
+              <span className="tracking-[0.2em] text-lime">★★★★★</span>
+              <span className="opacity-80">Được phòng khám da liễu tin dùng · Hotline 1900 6368</span>
+            </div>
+          </motion.div>
+
+          <div className="border-t border-snow/15 mt-6 pt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { h: 'Khám bệnh', links: [['Đặt lịch khám', '/dat-lich'], ['Hỏi AI trước khi đặt', '/tro-ly-ai'], ['Cẩm nang da', '/cam-nang'], ['Lịch của tôi', '/benh-nhan']] },
+              { h: 'Tài liệu', links: [['Tính năng', '#features'], ['Quy trình', '#workflow'], ['Bảo mật', '#security']] },
+              { h: 'Tài khoản', links: [['Đăng nhập', '/login'], ['Đăng ký', '/register'], ['Trang bác sĩ', '/bac-si']] },
+              { h: 'Liên hệ', links: [['Hotline: 1900 6368', 'tel:19006368'], ['Về trang chủ', '/'], ['Đặt lịch khám', '/dat-lich']] },
+            ].map((col, ci) => (
+              <motion.div
+                key={col.h}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-30px' }}
+                transition={{ duration: 0.45, delay: ci * 0.06 }}
+              >
+                <div className="text-[12px] uppercase tracking-[0.14em] font-medium opacity-90">{col.h}</div>
+                <ul className="mt-3 space-y-2.5 text-[14px]">
+                  {col.links.map(([label, to]) => (
+                    <li key={label}>
+                      {to.startsWith('#') ? (
+                        <a href={to} className="opacity-70 hover:opacity-100">{label}</a>
+                      ) : to.startsWith('tel:') ? (
+                        <a href={to} className="opacity-70 hover:opacity-100">{label}</a>
+                      ) : (
+                        <Link to={to} className="opacity-70 hover:opacity-100">{label}</Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="border-t border-snow/15 mt-6 pt-4 flex items-center justify-between gap-3">
+            <div className="text-[12px] opacity-60">© 2026 DermaCare — Thông tin đặt lịch được bảo mật</div>
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline-flex text-[12px] px-3 py-1.5 rounded-pill border border-snow/25 opacity-80">Tiếng Việt</span>
+              <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="w-10 h-10 rounded-full bg-snow text-forest flex items-center justify-center hover:opacity-90" aria-label="Về đầu trang">↑</button>
+            </div>
+          </div>
         </div>
-      </section>
+      </footer>
 
       <AIChatWidget />
     </div>
