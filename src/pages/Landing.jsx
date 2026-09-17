@@ -304,6 +304,7 @@ export default function Landing() {
             <Link to="/register" onClick={() => playClick('tap')} className="px-6 py-4 rounded-pill bg-transparent border-[1.5px] border-snow text-snow text-[16px] hover:opacity-80">Tạo tài khoản</Link>
           </div>
         </motion.div>
+      </section>
       {/* FOOTER đầy đủ — gọn */}
       <footer className="bg-forest text-snow">
         <div className="max-w-[1200px] mx-auto px-6 pt-10 pb-6">
