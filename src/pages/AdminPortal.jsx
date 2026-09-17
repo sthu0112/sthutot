@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Stethoscope, LogOut, UserPlus, Calendar, Bell, Phone } from 'lucide-react'
+import { Stethoscope, LogOut, UserPlus, Calendar, Bell, Phone, Menu } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import PortalSidebar from '../components/PortalSidebar'
 import { listAllAppointments, updateAppointment, listDoctors, listContacts } from '../lib/bookingStore'
 import { supabase, isDemoMode } from '../lib/supabase'
 import { SPECIALTIES } from '../data/content'
@@ -13,6 +14,7 @@ export default function AdminPortal() {
   const { user, signOut } = useAuth()
   const toast = useToast()
   const [tab, setTab] = useState('books')
+  const [menu, setMenu] = useState(false)
   const [books, setBooks] = useState([])
   const [doctors, setDoctors] = useState([])
   const [contacts, setContacts] = useState([])
@@ -111,9 +113,13 @@ export default function AdminPortal() {
   const pending = books.filter((b) => b.status === 'pending')
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9]">
+    <div className="min-h-screen bg-[#FAFAF9] lg:flex">
+      <PortalSidebar mobileOpen={menu} onClose={() => setMenu(false)} />
+      <div className="flex-1 min-w-0">
       <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-slate-200">
         <div className="max-w-[1060px] mx-auto px-4 sm:px-6 h-[60px] flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+          <button onClick={() => setMenu(true)} className="lg:hidden p-2.5 rounded-xl bg-white border border-slate-200" aria-label="Mở menu"><Menu size={17} /></button>
           <Link to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center"><Stethoscope size={16} /></div>
             <div className="font-extrabold tracking-tight text-sm">DERMACARE • Quản trị</div>
@@ -229,6 +235,7 @@ export default function AdminPortal() {
           <Link to="/" className="text-slate-500 hover:text-slate-800 font-semibold">← Trang chủ</Link>
         </div>
       </main>
+      </div>
     </div>
   )
 }

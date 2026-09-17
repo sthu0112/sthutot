@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, Plus, Stethoscope, LogOut } from 'lucide-react'
+import { Calendar, Plus, Stethoscope, LogOut, Menu } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import PortalSidebar from '../components/PortalSidebar'
 import { listAppointments, listAllAppointments } from '../lib/bookingStore'
 import { supabase, isDemoMode } from '../lib/supabase'
 import NotificationsBell from '../components/NotificationsBell'
@@ -16,6 +17,7 @@ const STATUS = {
 export default function PatientPortal() {
   const { user, profile, signOut } = useAuth()
   const [items, setItems] = useState([])
+  const [menu, setMenu] = useState(false)
 
   async function load() {
     try {
@@ -46,9 +48,13 @@ export default function PatientPortal() {
   const keys = [user?.id, `phone:${user?.phone || profile?.phone}`, 'role:patient'].filter(Boolean)
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9]">
+    <div className="min-h-screen bg-[#FAFAF9] lg:flex">
+      <PortalSidebar mobileOpen={menu} onClose={() => setMenu(false)} />
+      <div className="flex-1 min-w-0">
       <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-slate-200">
         <div className="max-w-[1000px] mx-auto px-4 sm:px-6 h-[60px] flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+          <button onClick={() => setMenu(true)} className="lg:hidden p-2.5 rounded-xl bg-white border border-slate-200" aria-label="Mở menu"><Menu size={17} /></button>
           <Link to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center"><Stethoscope size={16} /></div>
             <div className="font-extrabold tracking-tight text-sm">DERMACARE • Bệnh nhân</div>
@@ -101,6 +107,7 @@ export default function PatientPortal() {
           <Link to="/" className="text-xs text-slate-400 hover:text-slate-600 mt-2 inline-block">← Về trang chủ</Link>
         </div>
       </main>
+      </div>
     </div>
   )
 }

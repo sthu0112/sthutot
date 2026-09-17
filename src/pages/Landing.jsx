@@ -27,7 +27,7 @@ export default function Landing() {
   const { isAuthenticated, role } = useAuth()
 
   return (
-    <div className="min-h-screen bg-snow text-forest overflow-x-hidden">
+    <div className="min-h-screen bg-snow text-forest overflow-x-clip">
       {/* PROMO BANNER */}
       <div className="bg-snow border-b border-forest/10">
         <div className="max-w-[1200px] mx-auto px-6 h-10 flex items-center justify-center gap-2 text-[12px] font-medium uppercase tracking-wide">
