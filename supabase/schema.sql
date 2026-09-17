@@ -75,11 +75,13 @@ create index if not exists idx_profiles_user_id on profiles(user_id);
 create index if not exists idx_profiles_role on profiles(role);
 
 -- Trigger: tự động tạo profile khi có user mới đăng ký (bảo mật: role mặc định doctor, lấy từ user_metadata)
+-- Ghi rõ id = new.id để tương thích cả DB cũ (profiles.id là FK về users) lẫn DB mới (id tự sinh)
 create or replace function handle_new_user()
 returns trigger language plpgsql security definer as $$
 begin
-  insert into public.profiles (user_id, full_name, role, phone)
+  insert into public.profiles (id, user_id, full_name, role, phone)
   values (
+    new.id,
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
     coalesce(new.raw_user_meta_data->>'role', 'doctor'),

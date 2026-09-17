@@ -150,9 +150,9 @@ export function AuthProvider({ children }) {
       return { ...data, needsEmailConfirmation: true }
     }
     if (data.user) {
-      // Tạo profile (nếu trigger chưa tự tạo)
+      // Tạo profile (nếu trigger chưa tự tạo). Ghi rõ id để tương thích DB cũ (id là FK về users)
       try {
-        await supabase.from('profiles').insert({ user_id: data.user.id, full_name, role, phone: phone || null })
+        await supabase.from('profiles').insert({ id: data.user.id, user_id: data.user.id, full_name, role, phone: phone || null })
       } catch (e) {
         // Nếu đã có trigger, ignore duplicate
         if (!e.message?.includes('duplicate')) console.warn('profile insert', e.message)
