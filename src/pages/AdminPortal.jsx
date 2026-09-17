@@ -124,6 +124,7 @@ export default function AdminPortal() {
             <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center"><Stethoscope size={16} /></div>
             <div className="font-extrabold tracking-tight text-sm">DERMACARE • Quản trị</div>
           </Link>
+          </div>
           <div className="flex items-center gap-2">
             <NotificationsBell keys={['role:admin', user?.id].filter(Boolean)} title="Thông báo quản trị" />
             <button onClick={signOut} className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50" aria-label="Đăng xuất"><LogOut size={17} /></button>
