@@ -21,9 +21,13 @@
   --surface-accent-highlight: #d3fa99;
 }
 
-* { font-family: 'Inter', 'Be Vietnam Pro', system-ui, -apple-system, sans-serif; }
+* { font-family: 'Inter', 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif !important; }
 html { scroll-behavior: smooth; }
+html, body, #root { width: 100%; max-width: 100%; margin: 0; padding: 0; }
 body { overflow-x: hidden; background: #fcfcf7; color: #1c3a13; }
+/* Ép full-bleed: mọi section landing full 2 bên, không chừa trống */
+.full-bleed { width: 100%; max-width: 100%; margin-left: 0; margin-right: 0; }
+.font-serif { font-family: 'Inter', 'Be Vietnam Pro', system-ui, sans-serif !important; }
 img { max-width: 100%; height: auto; }
 ::selection { background: #d3fa99; color: #1c3a13; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }

@@ -21,7 +21,8 @@ export default function PatientPortal() {
 
   async function load() {
     try {
-      const mine = await listAppointments({ mineOnly: user?.id || profile?.phone || user?.phone })
+      const phone = user?.phone || profile?.phone || null
+      const mine = await listAppointments({ mineOnly: user?.id || phone, phone })
       // demo fallback: khớp cả phone
       let all = mine
       if (isDemoMode) {

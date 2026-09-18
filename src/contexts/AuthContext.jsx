@@ -42,12 +42,20 @@ export function AuthProvider({ children }) {
     return ()=> { mounted=false; sub.subscription.unsubscribe() }
   }, [])
 
-  async function fetchProfile(userId) {
+  async function fetchProfile(userId, retry = true) {
     try {
       const { data, error } = await supabase.from('profiles').select('*').eq('user_id', userId).single()
       if (error) throw error
       setProfile(data)
     } catch (e) {
+      // Trigger handle_new_user đôi khi chưa chạy xong ngay sau signUp -> thử lại 1 lần
+      if (retry) {
+        await new Promise((r) => setTimeout(r, 900))
+        try {
+          const { data, error: e2 } = await supabase.from('profiles').select('*').eq('user_id', userId).single()
+          if (!e2 && data) { setProfile(data); setLoading(false); return }
+        } catch {}
+      }
       console.warn('fetchProfile failed', e)
       setProfile({ user_id: userId, full_name: user?.email || 'Khách hàng', role:'patient', phone:'' })
     } finally { setLoading(false) }
@@ -150,12 +158,14 @@ export function AuthProvider({ children }) {
       return { ...data, needsEmailConfirmation: true }
     }
     if (data.user) {
-      // Tạo profile (nếu trigger chưa tự tạo). Ghi rõ id để tương thích DB cũ (id là FK về users)
+      // Trigger handle_new_user thường đã tự tạo profile. Insert thêm để chắc chắn có phone (upsert, không lỗi trùng).
       try {
-        await supabase.from('profiles').insert({ id: data.user.id, user_id: data.user.id, full_name, role, phone: phone || null })
+        await supabase.from('profiles').upsert(
+          { id: data.user.id, user_id: data.user.id, full_name, role, phone: phone || null },
+          { onConflict: 'user_id' }
+        )
       } catch (e) {
-        // Nếu đã có trigger, ignore duplicate
-        if (!e.message?.includes('duplicate')) console.warn('profile insert', e.message)
+        if (!e.message?.includes('duplicate') && !e.message?.includes('row-level security')) console.warn('profile upsert', e.message)
       }
     }
     return data

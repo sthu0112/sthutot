@@ -18,7 +18,7 @@ export default function AppLayout() {
       )}
       <div className="flex-1 min-w-0 flex flex-col">
         <Header onMenu={()=>setMobileOpen(true)} />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-[1400px] w-full mx-auto">
+        <main className="flex-1 w-full max-w-none p-4 md:p-6 lg:px-10 lg:py-8">
           <Outlet />
         </main>
         <footer className="px-6 py-4 text-center text-xs text-slate-400 border-t border-slate-200 bg-white">© 2026 DermaCare — Secure Dermatology Patient Records · Privacy by Design</footer>

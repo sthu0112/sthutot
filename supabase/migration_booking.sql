@@ -140,8 +140,11 @@ create policy "contact_insert_all" on contact_messages for insert with check (tr
 drop policy if exists "contact_select_admin" on contact_messages;
 create policy "contact_select_admin" on contact_messages for select to authenticated using (true);
 
+-- Khách chưa đăng nhập vẫn đặt được (lưu SĐT + tên), bác sĩ/admin xác nhận sau
 drop policy if exists "appt_insert_auth" on appointments;
 create policy "appt_insert_auth" on appointments for insert to authenticated with check (true);
+drop policy if exists "appt_insert_anon" on appointments;
+create policy "appt_insert_anon" on appointments for insert to anon with check (true);
 drop policy if exists "appt_select_own_or_staff" on appointments;
 create policy "appt_select_own_or_staff" on appointments for select to authenticated using (
   patient_user_id = auth.uid() or doctor_user_id = auth.uid() or current_user_role() in ('admin','doctor','staff')
@@ -153,6 +156,8 @@ create policy "appt_update_staff" on appointments for update to authenticated us
 
 drop policy if exists "notif_insert_auth" on notifications;
 create policy "notif_insert_auth" on notifications for insert to authenticated with check (true);
+drop policy if exists "notif_insert_anon" on notifications;
+create policy "notif_insert_anon" on notifications for insert to anon with check (true);
 drop policy if exists "notif_select_related" on notifications;
 create policy "notif_select_related" on notifications for select to authenticated using (
   user_id = auth.uid() or role_target in ('patient','doctor','admin')

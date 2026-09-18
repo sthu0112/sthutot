@@ -49,12 +49,12 @@ begin
   return code;
 end $$;
 
--- 2) profiles — maps auth.users -> app user (thông tin bác sĩ)
+-- 2) profiles — maps auth.users -> app user (bệnh nhân + bác sĩ + admin)
 create table if not exists profiles (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid unique not null references auth.users(id) on delete cascade,
   full_name text not null,
-  role text not null check (role in ('admin','doctor','staff')),
+  role text not null check (role in ('admin','doctor','staff','patient')),
   phone text, -- số điện thoại di động bác sĩ (mới)
   avatar_url text,
   created_at timestamptz default now(),
@@ -74,17 +74,20 @@ end $$;
 create index if not exists idx_profiles_user_id on profiles(user_id);
 create index if not exists idx_profiles_role on profiles(role);
 
--- Trigger: tự động tạo profile khi có user mới đăng ký (bảo mật: role mặc định doctor, lấy từ user_metadata)
+-- Trigger: tự động tạo profile khi có user mới đăng ký (mặc định patient cho đăng ký công khai, lấy từ user_metadata)
 -- Ghi rõ id = new.id để tương thích cả DB cũ (profiles.id là FK về users) lẫn DB mới (id tự sinh)
 create or replace function handle_new_user()
 returns trigger language plpgsql security definer as $$
+declare
+  r text := coalesce(new.raw_user_meta_data->>'role', 'patient');
 begin
+  if r not in ('admin','doctor','staff','patient') then r := 'patient'; end if;
   insert into public.profiles (id, user_id, full_name, role, phone)
   values (
     new.id,
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    coalesce(new.raw_user_meta_data->>'role', 'doctor'),
+    r,
     new.raw_user_meta_data->>'phone'
   )
   on conflict (user_id) do nothing;
@@ -400,10 +403,13 @@ alter table patient_images enable row level security;
 alter table attachments enable row level security;
 alter table audit_logs enable row level security;
 
--- profiles
+-- profiles: ai cũng đọc được hồ sơ bác sĩ (để đặt lịch), hồ sơ cá nhân chỉ chủ sở hữu + admin
 drop policy if exists "profiles_select_own_or_admin" on profiles;
 create policy "profiles_select_own_or_admin" on profiles for select to authenticated
-using ( user_id = auth.uid() or current_user_role() = 'admin' );
+using ( user_id = auth.uid() or role = 'doctor' or current_user_role() = 'admin' );
+drop policy if exists "profiles_select_doctors_public" on profiles;
+create policy "profiles_select_doctors_public" on profiles for select to anon
+using ( role = 'doctor' );
 
 drop policy if exists "profiles_insert_own" on profiles;
 create policy "profiles_insert_own" on profiles for insert to authenticated with check ( user_id = auth.uid() );

@@ -32,7 +32,7 @@ export function CamNangList() {
 
   return (
     <div className="min-h-screen bg-snow">
-      <div className="max-w-[1200px] mx-auto px-6 py-10 md:py-14">
+      <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-10 md:py-14">
         <Link to="/" className="inline-flex items-center gap-1.5 text-[14px] text-pewter hover:text-forest"><ArrowLeft size={15} /> Về trang chủ</Link>
         <div className="text-[12px] uppercase tracking-wide text-pewter font-medium mt-4">DermaCare / Cẩm nang</div>
         <h1 className="font-light text-[36px] md:text-[40px] leading-[1.1] tracking-[-0.4px] mt-2">Hiểu làn da của bạn</h1>

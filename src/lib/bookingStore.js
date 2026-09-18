@@ -28,14 +28,15 @@ export function emitLocalChange(name) {
 }
 
 // ---------- APPOINTMENTS ----------
+// Lưu lịch khám: demo -> localStorage, thật -> Supabase (kể cả khách chưa đăng nhập vẫn lưu được nhờ policy anon)
 export async function createAppointment(payload) {
+  const clean = { status: 'pending', ...payload }
   if (isDemoMode || !supabase) {
     const all = read(LS_BOOK, [])
     const row = {
       id: uid('bk'),
-      status: 'pending',
       created_at: new Date().toISOString(),
-      ...payload,
+      ...clean,
     }
     all.unshift(row)
     write(LS_BOOK, all)
@@ -45,20 +46,39 @@ export async function createAppointment(payload) {
     emitLocalChange('dermacare:notifs')
     return row
   }
-  const { data, error } = await supabase.from('appointments').insert(payload).select().single()
-  if (error) throw error
-  return data
+  try {
+    const { data, error } = await supabase.from('appointments').insert(clean).select().single()
+    if (error) throw error
+    return data
+  } catch (e) {
+    // Lỗi thường gặp: chưa chạy migration_fix_auth_booking.sql hoặc chưa bật anon insert
+    if (e.message?.includes('row-level security') || e.message?.includes('RLS') || e.code === '42501') {
+      throw new Error('Chưa lưu được lịch lên Supabase (RLS). Hãy chạy supabase/migration_fix_auth_booking.sql trong SQL Editor rồi thử lại.')
+    }
+    throw new Error(e.message || 'Đặt lịch thất bại')
+  }
 }
 
-export async function listAppointments({ mineOnly = null, doctorId = null } = {}) {
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+export async function listAppointments({ mineOnly = null, phone = null, doctorId = null } = {}) {
   if (isDemoMode || !supabase) {
     let all = read(LS_BOOK, [])
-    if (mineOnly) all = all.filter((a) => a.patient_user_id === mineOnly || a.phone === mineOnly)
+    if (mineOnly) all = all.filter((a) => a.patient_user_id === mineOnly || a.phone === mineOnly || (phone && a.phone === phone))
+    else if (phone) all = all.filter((a) => a.phone === phone)
     if (doctorId) all = all.filter((a) => a.doctor_user_id === doctorId || !a.doctor_user_id)
     return all
   }
   let q = supabase.from('appointments').select('*').order('created_at', { ascending: false }).limit(200)
-  if (mineOnly) q = q.eq('patient_user_id', mineOnly)
+  // mineOnly có thể là UUID (user_id) hoặc SĐT (khách vãng lai) — tự nhận diện
+  if (mineOnly && phone && mineOnly !== phone) {
+    q = UUID_RE.test(mineOnly)
+      ? q.or(`patient_user_id.eq.${mineOnly},phone.eq.${phone}`)
+      : q.or(`patient_user_id.eq.${mineOnly},phone.eq.${mineOnly},phone.eq.${phone}`)
+  } else if (mineOnly) {
+    q = UUID_RE.test(mineOnly) ? q.eq('patient_user_id', mineOnly) : q.eq('phone', mineOnly)
+  } else if (phone) {
+    q = q.eq('phone', phone)
+  }
   if (doctorId) q = q.eq('doctor_user_id', doctorId)
   const { data, error } = await q
   if (error) throw error
@@ -196,23 +216,31 @@ export async function markNotifRead(id) {
 }
 
 // ---------- DOCTORS ----------
+// Lấy từ profiles (role=doctor). Nếu RLS chưa mở hoặc chưa có bác sĩ thật thì fallback danh sách mẫu để vẫn đặt lịch được.
 export async function listDoctors() {
+  let extra = []
+  try { extra = JSON.parse(localStorage.getItem('dermacare_extra_doctors') || '[]') } catch {}
   if (isDemoMode || !supabase) {
-    let extra = []
-    try { extra = JSON.parse(localStorage.getItem('dermacare_extra_doctors') || '[]') } catch {}
     return [...extra, ...FALLBACK_DOCTORS]
   }
-  const { data, error } = await supabase.from('profiles').select('*').eq('role', 'doctor').order('created_at', { ascending: true }).limit(50)
-  if (error) throw error
-  return (data || []).map((d) => ({
-    user_id: d.user_id,
-    full_name: d.full_name,
-    specialty_slug: d.specialty_slug || 'nhiem-trung-da',
-    specialty: d.specialty || 'Da liễu tổng quát',
-    experience: d.experience || '',
-    bio: d.bio || '',
-    phone: d.phone || '',
-  }))
+  try {
+    const { data, error } = await supabase.from('profiles').select('*').eq('role', 'doctor').order('created_at', { ascending: true }).limit(50)
+    if (error) throw error
+    const mapped = (data || []).map((d) => ({
+      user_id: d.user_id,
+      full_name: d.full_name,
+      specialty_slug: d.specialty_slug || 'nhiem-trung-da',
+      specialty: d.specialty || 'Da liễu tổng quát',
+      experience: d.experience || '',
+      bio: d.bio || '',
+      phone: d.phone || '',
+    }))
+    // Gộp bác sĩ local (admin tạo ở demo) + fallback nếu DB chưa có ai
+    const merged = [...extra, ...mapped]
+    return merged.length ? merged : [...extra, ...FALLBACK_DOCTORS]
+  } catch {
+    return [...extra, ...FALLBACK_DOCTORS]
+  }
 }
 
 // ---------- CONTACT ----------

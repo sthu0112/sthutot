@@ -192,15 +192,20 @@ export default function Settings(){
       )}
 
       <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h3 className="font-semibold mb-2">Hướng dẫn kết nối Supabase thật</h3>
+        <h3 className="font-semibold mb-2">Trạng thái kết nối</h3>
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${isDemoMode ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+          <span className={`w-2 h-2 rounded-full ${isDemoMode ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`} />
+          {isDemoMode ? 'DEMO — lưu localStorage, chưa lưu Supabase' : 'SUPABASE — đang lưu tài khoản + lịch khám realtime'}
+        </div>
+        <h3 className="font-semibold mb-2 mt-5">Hướng dẫn kết nối Supabase thật (lưu tài khoản + lịch khám)</h3>
         <ol className="text-sm text-slate-600 list-decimal ml-4 space-y-1">
-          <li>Tạo project tại supabase.com</li>
-          <li>Chạy <span className="font-mono">supabase/schema.sql</span> trong SQL Editor (đã thêm cột <span className="font-mono">profiles.phone</span>)</li>
-          <li>Chạy <span className="font-mono">supabase/seed.sql</span> (optional)</li>
-          <li>Tạo bucket <span className="font-mono">luutruhoso</span> (private) hoặc để SQL tự tạo</li>
-          <li>Copy URL + anon key vào <span className="font-mono">.env</span> (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY)</li>
-          <li>Đặt <span className="font-mono">VITE_DEMO_MODE=""</span> (rỗng) để tắt demo</li>
-          <li>Tạo user trong Authentication → Users, rồi insert profile tương ứng (kèm phone)</li>
+          <li>Chạy <span className="font-mono">supabase/schema.sql</span> trong SQL Editor</li>
+          <li>Chạy <span className="font-mono">supabase/migration_booking.sql</span> (tạo lịch hẹn + thông báo)</li>
+          <li>Chạy <span className="font-mono">supabase/migration_fix_auth_booking.sql</span> (vá lưu patient + khách vãng lai) — bắt buộc nếu DB cũ</li>
+          <li>Kiểm tra bucket <span className="font-mono">luutruhoso</span> là Private</li>
+          <li>Bật Auth → Email/Password ON. Tắt Confirm email khi test</li>
+          <li>Copy URL + anon key vào Vercel Env: <span className="font-mono">VITE_SUPABASE_URL</span> / <span className="font-mono">VITE_SUPABASE_ANON_KEY</span>, để <span className="font-mono">VITE_DEMO_MODE</span> rỗng</li>
+          <li>Đăng ký tài khoản mới ở /register để test lưu vào <span className="font-mono">auth.users + profiles</span>, đặt lịch ở /dat-lich để test bảng <span className="font-mono">appointments</span></li>
         </ol>
       </div>
     </div>
