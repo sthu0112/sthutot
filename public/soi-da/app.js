@@ -440,31 +440,44 @@ async function capture() { await captureWithCountdown(); }
 
 async function captureWithCountdown() {
   const st = el("camStatus"), cd = el("countdown"), live = el("liveCanvas");
+  const say = t => { if (st) st.textContent = t; };
   if (isCounting) return;
-  if (!camStream || !live) { if (st) st.textContent = "⚠️ Chưa có camera. Bấm “Mở camera” trước."; await openCamera(); if (!camStream) return; }
-  if (!lastTrackLm || (performance.now() - lastTrackSeen > 1500)) { if (st) st.textContent = "⚠️ Mất mặt trong khung — đưa mặt vào giữa, đợi ✅ OK rồi chụp."; return; }
+  if (!camStream || !live) { say("⚠️ Chưa có camera. Bấm “Mở camera” trước."); await openCamera(); if (!camStream) return; }
+  const tracked = lastTrackLm && (performance.now() - lastTrackSeen < 1500);
   if (state[currentTarget].img && !confirm(`Góc ${currentTarget} đã có ảnh. Chụp đè?`)) return;
   isCounting = true; updateProgress();
   setStepBar(1);
-  for (const s of ["3", "2", "1"]) {
-    if (cd) cd.textContent = s;
-    if (st) st.textContent = `Chuẩn bị… ${s} — giữ yên: ${GUIDE[currentTarget]}`;
-    try { await new Promise(r => setTimeout(r, 800)); } catch {}
+  try {
+    for (const s of ["3", "2", "1"]) {
+      if (cd) cd.textContent = s;
+      say(`Chuẩn bị… ${s} — giữ yên: ${GUIDE[currentTarget]}`);
+      await new Promise(r => setTimeout(r, 800));
+    }
+    if (cd) cd.textContent = "📸";
+    // liveCanvas đang mirror (selfie) -> lật lại thành ảnh thật để phân tích đúng trái/phải, yaw đúng dấu
+    const snap = el("camSnap");
+    const sx = snap.getContext("2d");
+    sx.save(); sx.translate(snap.width, 0); sx.scale(-1, 1);
+    sx.drawImage(live, 0, 0, live.width, live.height, 0, 0, snap.width, snap.height);
+    sx.restore();
+    if (cd) cd.textContent = "";
+    if (isCanvasBlank(snap)) throw new Error("Khung hình đang trống (camera chưa ra hình). Thử Dừng rồi Mở camera lại.");
+    const img = new Image();
+    await new Promise((res, rej) => {
+      const to = setTimeout(() => rej(new Error("timeout")), 5000);
+      img.onload = () => { clearTimeout(to); res(); };
+      img.onerror = () => { clearTimeout(to); rej(new Error("timeout")); };
+      img.src = snap.toDataURL("image/png");
+    });
+    state[currentTarget].img = img;
+    drawCover(currentTarget, img);
+    say(`✅ Đã lưu ảnh ${currentTarget}${tracked ? "" : " (chụp không bám mặt — AI vẫn phân tích, góc có thể kém chuẩn)"}. Đang phân tích kỹ vùng này…`);
+  } catch (e) {
+    say("❌ Chụp chưa được: " + e.message);
+    isCounting = false; updateProgress();
+    return;
   }
-  if (cd) cd.textContent = "📸";
-  // liveCanvas đang mirror (selfie) -> lật lại thành ảnh thật để phân tích đúng trái/phải, yaw đúng dấu
-  const snap = el("camSnap");
-  const sx = snap.getContext("2d");
-  sx.save(); sx.translate(snap.width, 0); sx.scale(-1, 1);
-  sx.drawImage(live, 0, 0, live.width, live.height, 0, 0, snap.width, snap.height);
-  sx.restore();
-  if (cd) cd.textContent = "";
-  const img = new Image(); img.src = snap.toDataURL("image/png");
-  await new Promise(r => img.onload = r);
-  state[currentTarget].img = img;
-  drawCover(currentTarget, img);
   isCounting = false;
-  if (st) st.textContent = `✅ Đã chụp ${currentTarget}. Đang phân tích kỹ vùng này…`;
   setStepBar(2);
   updateProgress();
   await quickAnalyze(currentTarget); // phân tích kỹ ngay vùng đó
@@ -475,6 +488,16 @@ async function captureWithCountdown() {
     setTimeout(() => analyzeAll(true), 600);
   }
   updateProgress();
+}
+// khung hình toàn pixel trống/đen -> báo rõ thay vì lưu ảnh rỗng
+function isCanvasBlank(canvas) {
+  try {
+    const x = canvas.getContext("2d", { willReadFrequently: true });
+    const d = x.getImageData(0, 0, canvas.width, canvas.height).data;
+    let sum = 0; const n = d.length / 4, step = Math.max(1, Math.floor(n / 2000));
+    for (let i = 0; i < n; i += step) sum += d[i * 4] + d[i * 4 + 1] + d[i * 4 + 2];
+    return (sum / Math.ceil(n / step)) < 4;
+  } catch { return false; }
 }
 // Phân tích kỹ ngay 1 vùng vừa chụp (QC + ROI + bbox + số lượng), không đợi đủ 3
 async function quickAnalyze(angle) {

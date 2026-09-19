@@ -143,7 +143,7 @@ export default function SoiDa() {
             <div className="relative bg-[#0b1526] rounded-xl overflow-hidden min-h-[280px]">
               <canvas id="liveCanvas" width="640" height="480" className="w-full h-[280px] sm:h-[360px] object-cover block bg-[#0b1526]" />
               <div id="countdown" className="absolute inset-0 flex items-center justify-center font-black pointer-events-none" style={{ fontSize: 110, color: '#fff', textShadow: '0 4px 30px rgba(0,0,0,.7)' }} />
-              <div className="absolute left-2.5 bottom-2.5 max-w-[92%]"><div id="faceStatus" className="facestat">Camera chưa mở</div></div>
+              <div className="absolute left-2.5 right-2.5 bottom-2.5"><div id="faceStatus" className="facestat text-center leading-snug">Camera chưa mở</div></div>
             </div>
             <div>
               <div className="grid grid-cols-3 gap-2 mb-2">
