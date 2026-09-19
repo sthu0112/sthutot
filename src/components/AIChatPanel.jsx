@@ -177,6 +177,11 @@ export default function AIChatPanel({ compact = false }) {
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[88%] px-4 py-3 text-[14px] leading-[1.5] ${m.role === 'user' ? 'bg-forest text-snow rounded-2xl rounded-br-md' : 'bg-stone text-forest rounded-2xl rounded-bl-md'}`}>
               <div className="whitespace-pre-wrap">{m.content}</div>
+              {m.role === 'assistant' && m.authExpired && (
+                <Link to="/login" className="inline-flex items-center justify-center gap-2 w-full mt-2 py-2.5 rounded-pill bg-forest text-snow text-[13px] font-medium hover:opacity-90">
+                  Đăng nhập lại
+                </Link>
+              )}
               {m.role === 'assistant' && Array.isArray(m.sources) && m.sources.length > 0 && (
                 <div className="mt-1.5 text-[11px] opacity-70">Dựa trên: {m.sources.join(' · ')}</div>
               )}

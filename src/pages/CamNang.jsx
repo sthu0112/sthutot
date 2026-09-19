@@ -39,7 +39,7 @@ export function CamNangList() {
         <p className="text-[16px] text-pewter mt-3 max-w-2xl leading-[1.5]">Bài viết ngắn gọn, dễ hiểu từ kho tài liệu da liễu của DermaCare. Thông tin chỉ tham khảo, không thay thế khám trực tiếp.</p>
 
         {loading && <div className="grid md:grid-cols-3 gap-4 mt-10">{[0, 1, 2].map((i) => <div key={i} className="h-44 rounded-2xl bg-stone animate-pulse" />)}</div>}
-        {err && <div className="mt-10 rounded-2xl bg-stone p-6 text-[15px]">Chưa tải được cẩm nang ({err}). Bạn hỏi <Link to="/tro-ly-ai" className="underline font-medium">trợ lý AI</Link> trước nhé.</div>}
+        {err && <div className="mt-10 rounded-2xl bg-stone p-6 text-[15px]">Chưa tải được cẩm nang ({err}). <button onClick={() => window.location.reload()} className="underline font-medium">Thử lại</button> Bạn hỏi <Link to="/tro-ly-ai" className="underline font-medium">trợ lý AI</Link> trước nhé.</div>}
 
         {!loading && !err && (
           <>
@@ -95,7 +95,7 @@ export function CamNangDetail() {
       <div className="max-w-[760px] mx-auto px-6 py-10">
         <Link to="/cam-nang" className="inline-flex items-center gap-1.5 text-[14px] text-pewter hover:text-forest"><ArrowLeft size={15} /> Tất cả bài viết</Link>
         {loading && <div className="mt-6 space-y-3"><div className="h-10 rounded-2xl bg-stone animate-pulse" /><div className="h-64 rounded-2xl bg-stone animate-pulse" /></div>}
-        {err && <div className="mt-6 rounded-2xl bg-stone p-6 text-[15px]">Không tải được bài viết ({err}).</div>}
+        {err && <div className="mt-6 rounded-2xl bg-stone p-6 text-[15px]">Không tải được bài viết ({err}). <button onClick={() => window.location.reload()} className="underline font-medium">Thử lại</button></div>}
         {article && (
           <article>
             <span className="inline-block mt-4 px-2 py-[6px] rounded-pill bg-lime text-forest text-[12px] font-medium">{article.category}</span>

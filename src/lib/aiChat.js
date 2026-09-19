@@ -1,16 +1,16 @@
-import { supabase, isDemoMode } from './supabase'
+import { supabase, isDemoMode, invokeFunction, isAuthError } from './supabase'
 import { SPECIALTIES, guessSpecialtyFromText, specialtyBySlug } from '../data/content'
 
 const LS_THREADS = 'dermacare_ai_threads_v1'
 
-// Gọi Edge Function ai-chat (key giữ server-side). Lỗi/chưa cấu hình -> offline fallback.
+// Gọi Edge Function ai-chat (key giữ server-side).
+// - timeout 25s + retry 1 lần: mạng chập chờn vẫn trả lời được
+// - hết hạn phiên (401/token hết hạn): báo rõ để đăng nhập lại
+// - mọi lỗi khác: dự phòng offline, KHÔNG bao giờ treo/không trả lời
 export async function askAI(messages) {
   if (!isDemoMode && supabase) {
     try {
-      const { data, error } = await supabase.functions.invoke('ai-chat', {
-        body: { messages: messages.slice(-12) },
-      })
-      if (error) throw error
+      const data = await invokeFunction('ai-chat', { messages: messages.slice(-12) }, { timeoutMs: 25000, retries: 1 })
       if (data?.reply) {
         return {
           reply: data.reply,
@@ -24,6 +24,18 @@ export async function askAI(messages) {
       }
       throw new Error('AI trống')
     } catch (e) {
+      if (isAuthError(e)) {
+        return {
+          reply: 'Phiên đăng nhập của bạn đã hết hạn nên mình chưa gọi được AI đầy đủ. Bạn đăng nhập lại giúp mình nhé, rồi hỏi tiếp.',
+          level: 'none',
+          suggested_specialty: null,
+          skintype: null,
+          quick: [],
+          sources: [],
+          source: 'offline',
+          authExpired: true,
+        }
+      }
       console.warn('ai-chat fallback (offline):', e.message)
     }
   }
