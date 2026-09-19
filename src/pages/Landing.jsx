@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ShieldCheck, Database, Image as ImageIcon, ClipboardList, Search, Users, Stethoscope, ArrowRight, Check, FileText, Activity, HeartPulse, Layers, Clock, Award, Lock, Baby, Smile, User, HeartHandshake, ChevronDown, Star, Phone, MessageCircle, CalendarCheck, Sparkles, ScanFace } from 'lucide-react'
+import { ShieldCheck, Database, Image as ImageIcon, ClipboardList, Search, Users, Stethoscope, ArrowRight, Check, FileText, Activity, HeartPulse, Layers, Clock, Award, Lock, Baby, Smile, User, HeartHandshake, ChevronDown, Star, Phone, MessageCircle, CalendarCheck, Sparkles, ScanFace, BookOpen } from 'lucide-react'
 import { useAuth, homeByRole } from '../contexts/AuthContext'
 import { playClick } from '../utils/sound'
 import { AIChatWidget } from './AIChat'
@@ -69,6 +69,7 @@ function FaqItem({ q, a, open, onToggle }) {
 export default function Landing() {
   const { isAuthenticated, role } = useAuth()
   const [openFaq, setOpenFaq] = useState(0)
+  const [moreOpen, setMoreOpen] = useState(false)
 
   return (
     <div className="min-h-screen w-full max-w-none bg-snow text-forest overflow-x-clip font-sans">
@@ -95,15 +96,22 @@ export default function Landing() {
             <span className="w-2 h-2 rounded-full bg-forest" />
           </div>
           <nav className="hidden md:flex items-center gap-6 text-[15px] font-sans text-forest whitespace-nowrap">
-            <a href="#tong-quan" className="hover:opacity-70">Tổng quan</a>
-            <a href="#chuyen-khoa" className="hover:opacity-70">Chuyên khoa</a>
-            <a href="#do-tuoi" className="hover:opacity-70">Độ tuổi</a>
-            <a href="#tinh-nang" className="hover:opacity-70">Tính năng</a>
-            <a href="#faq" className="hover:opacity-70">Hỏi đáp</a>
+            <a href="/soi-da" className="hover:opacity-70 font-semibold">Soi da</a>
             <Link to="/dat-lich" className="hover:opacity-70">Đặt lịch</Link>
-            <a href="/soi-da" className="hover:opacity-70">Soi da</a>
             <Link to="/tro-ly-ai" className="hover:opacity-70">Hỏi AI</Link>
             <Link to="/cam-nang" className="hover:opacity-70">Cẩm nang</Link>
+            <div className="relative" onMouseEnter={() => setMoreOpen(true)} onMouseLeave={() => setMoreOpen(false)}>
+              <button onClick={() => setMoreOpen((o) => !o)} className="hover:opacity-70 inline-flex items-center gap-1">Khám phá <ChevronDown size={15} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} /></button>
+              {moreOpen && (
+                <div className="absolute right-0 top-full pt-2 z-50">
+                  <div className="bg-white border border-forest/10 rounded-2xl shadow-xl p-2 min-w-[200px]">
+                    {[['Tổng quan', '#tong-quan'], ['Chuyên khoa', '#chuyen-khoa'], ['Độ tuổi', '#do-tuoi'], ['Tính năng', '#tinh-nang'], ['Hỏi đáp', '#faq'], ['Dinh dưỡng & Thiên nhiên', '/cham-soc-tu-nhien']].map(([label, to]) => (
+                      <a key={label} href={to.startsWith('#') ? to : to} onClick={() => setMoreOpen(false)} className="block px-4 py-2.5 rounded-xl text-[14px] hover:bg-stone">{label}</a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </nav>
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
@@ -159,6 +167,17 @@ export default function Landing() {
                 </Link>
                 <Link to="/login" onClick={() => playClick('tap')} className="inline-flex items-center gap-2 px-6 py-4 rounded-pill bg-snow border-[1.5px] border-forest text-forest text-[16px] font-sans hover:opacity-80 hover:scale-[1.02] active:scale-[0.98] transition-transform">Xem demo</Link>
                 <a href="/soi-da" onClick={() => playClick('success')} className="inline-flex items-center gap-2 px-8 py-5 rounded-pill bg-lime text-forest text-[18px] font-sans font-semibold shadow-lg hover:opacity-90 hover:scale-[1.03] active:scale-[0.98] transition-transform"><ScanFace size={20} strokeWidth={2} /> Soi da AI</a>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+                className="flex flex-wrap items-center gap-2 mt-5 text-[13px] font-sans"
+              >
+                <span className="text-pewter font-medium">Truy cập nhanh:</span>
+                <a href="/" className="px-4 py-2 rounded-pill bg-white border border-forest/20 hover:border-forest font-medium">1 · Trang chủ</a>
+                <a href="/soi-da" className="px-4 py-2 rounded-pill bg-white border border-forest/20 hover:border-forest font-medium">2 · Soi da</a>
+                <Link to="/cam-nang" className="px-4 py-2 rounded-pill bg-white border border-forest/20 hover:border-forest font-medium">3 · Cẩm nang</Link>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -442,6 +461,58 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* HƯỚNG DẪN SỬ DỤNG — full, animation từng bước */}
+      <section id="huong-dan" className="w-full bg-white border-y border-forest/10 scroll-mt-20">
+        <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-16 md:py-24">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="font-sans text-[12px] uppercase tracking-wide text-pewter font-medium">Hướng dẫn sử dụng</div>
+            <h2 className="font-sans font-semibold text-[32px] md:text-[36px] leading-[1.1] tracking-tight mt-3">Dùng web trong 4 bước</h2>
+            <p className="font-sans text-[15px] text-pewter mt-2">Mới vào lần đầu? Đi theo đúng thứ tự này là xong.</p>
+          </motion.div>
+          <div className="relative grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-10">
+            <motion.div
+              initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }}
+              transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+              className="hidden lg:block absolute top-9 left-[12%] right-[12%] h-[3px] rounded-full origin-left"
+              style={{ background: 'linear-gradient(90deg,#1c3a13,#d3fa99)' }}
+            />
+            {[
+              { n: '1', icon: ScanFace, t: 'Soi da AI', d: 'Chụp 3 góc mặt, AI khoanh vùng mụn — thâm — sắc tố.', to: '/soi-da', cta: 'Quét ngay' },
+              { n: '2', icon: MessageCircle, t: 'Hỏi trợ lý AI', d: 'Kể tuổi + triệu chứng, AI định hướng nhóm bệnh.', to: '/tro-ly-ai', cta: 'Hỏi thử' },
+              { n: '3', icon: CalendarCheck, t: 'Đặt lịch khám', d: 'Chọn nhóm bệnh, bác sĩ, giờ — xác nhận trong 15 phút.', to: '/dat-lich', cta: 'Đặt lịch' },
+              { n: '4', icon: BookOpen, t: 'Đọc cẩm nang', d: 'Ăn gì, chăm sóc sao, khi nào cần đi khám.', to: '/cam-nang', cta: 'Đọc ngay' },
+            ].map((s, i) => {
+              const Icon = s.icon
+              return (
+                <motion.div
+                  key={s.n}
+                  initial={{ opacity: 0, y: 22 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -6 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.5, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative bg-snow rounded-2xl border border-forest/10 p-6 hover:shadow-card transition-shadow"
+                >
+                  <motion.div
+                    initial={{ scale: 0 }} whileInView={{ scale: 1 }} viewport={{ once: true }}
+                    transition={{ delay: 0.15 + i * 0.12, type: 'spring', stiffness: 260, damping: 16 }}
+                    className="w-12 h-12 rounded-full bg-forest text-lime flex items-center justify-center font-sans font-bold text-[16px]"
+                  >
+                    {s.n}
+                  </motion.div>
+                  <div className="flex items-center gap-2 mt-4 font-sans font-semibold text-[17px]"><Icon size={18} strokeWidth={1.5} /> {s.t}</div>
+                  <div className="font-sans text-[14px] text-pewter mt-1.5 leading-relaxed">{s.d}</div>
+                  <a href={s.to} className="inline-flex items-center gap-1 mt-3 font-sans text-[14px] font-medium text-forest underline underline-offset-4 decoration-[1.5px]">{s.cta} <ArrowRight size={14} /></a>
+                </motion.div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* ĐÁNH GIÁ — full */}
       <section className="w-full bg-stone/60 border-y border-forest/10">
         <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-16 md:py-20">
@@ -527,7 +598,7 @@ export default function Landing() {
           <div className="border-t border-snow/15 mt-6 pt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
               { h: 'Khám bệnh', links: [['Đặt lịch khám', '/dat-lich'], ['Soi da AI', '/soi-da'], ['Hỏi AI trước khi đặt', '/tro-ly-ai'], ['Cẩm nang da', '/cam-nang'], ['Lịch của tôi', '/benh-nhan']] },
-              { h: 'Tài liệu', links: [['Tổng quan', '#tong-quan'], ['Chuyên khoa', '#chuyen-khoa'], ['Độ tuổi', '#do-tuoi'], ['Hỏi đáp', '#faq']] },
+              { h: 'Tài liệu', links: [['Tổng quan', '#tong-quan'], ['Dinh dưỡng & Thiên nhiên', '/cham-soc-tu-nhien'], ['Chuyên khoa', '#chuyen-khoa'], ['Độ tuổi', '#do-tuoi'], ['Hỏi đáp', '#faq']] },
               { h: 'Tài khoản', links: [['Đăng nhập', '/login'], ['Đăng ký', '/register'], ['Trang bác sĩ', '/bac-si']] },
               { h: 'Liên hệ', links: [['Hotline: 1900 6368', 'tel:19006368'], ['Về trang chủ', '/'], ['Đặt lịch khám', '/dat-lich']] },
             ].map((col, ci) => (

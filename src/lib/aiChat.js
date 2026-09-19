@@ -53,7 +53,7 @@ export async function askAI(messages) {
   if (isOffTopic(lastUserText)) return offTopicReply()
   if (!isDemoMode && supabase) {
     try {
-      const data = await invokeFunction('ai-chat', { messages: messages.slice(-12) }, { timeoutMs: 30000, retries: 2 })
+      const data = await invokeFunction('ai-chat', { messages: messages.slice(-12) }, { timeoutMs: 30000, retries: 3 })
       if (data?.reply) {
         return {
           reply: data.reply,

@@ -105,6 +105,28 @@ export default function AIChatPanel({ compact = false }) {
     setShowHistory(false)
   }
 
+  async function runAI(updated, next) {
+    setBusy(true)
+    try {
+      const res = await askAI(next.map(({ role, content }) => ({ role, content })))
+      playClick('success')
+      const done = {
+        ...updated,
+        title: threadTitle(next),
+        messages: [...next, { role: 'assistant', content: res.reply, level: res.level, suggested_specialty: res.suggested_specialty, skintype: res.skintype, quick: res.quick, sources: res.sources, source: res.source, offlineReason: res.offlineReason, authExpired: res.authExpired }],
+      }
+      saveThread(done)
+      persist(loadThreads(), done.id)
+    } catch {
+      playClick('error')
+      const done = { ...updated, messages: [...next, { role: 'assistant', content: 'Mạng đang bận, bạn thử lại sau ít phút nhé.', level: 'none', suggested_specialty: null, skintype: null, quick: [], sources: [], source: 'offline' }] }
+      saveThread(done)
+      persist(loadThreads(), done.id)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function sendText(text) {
     const content = text.trim()
     if (!content || busy) return
@@ -119,25 +141,20 @@ export default function AIChatPanel({ compact = false }) {
     saveThread(updated)
     persist(loadThreads(), updated.id)
     setInput('')
-    setBusy(true)
-    try {
-      const res = await askAI(next.map(({ role, content }) => ({ role, content })))
-      playClick('success')
-      const done = {
-        ...updated,
-        title: threadTitle(next),
-        messages: [...next, { role: 'assistant', content: res.reply, level: res.level, suggested_specialty: res.suggested_specialty, skintype: res.skintype, quick: res.quick, sources: res.sources, source: res.source }],
-      }
-      saveThread(done)
-      persist(loadThreads(), done.id)
-    } catch {
-      playClick('error')
-      const done = { ...updated, messages: [...next, { role: 'assistant', content: 'Mạng đang bận, bạn thử lại sau ít phút nhé.', level: 'none', suggested_specialty: null, skintype: null, quick: [], sources: [], source: 'offline' }] }
-      saveThread(done)
-      persist(loadThreads(), done.id)
-    } finally {
-      setBusy(false)
-    }
+    await runAI(updated, next)
+  }
+
+  // Gửi lại tin cuối (không tạo bong bóng trùng) khi AI rớt mạng
+  async function retryLast() {
+    if (busy || !active) return
+    playClick('tap')
+    const msgs = [...(active.messages.length ? active.messages : [{ ...GREETING }])]
+    while (msgs.length && msgs[msgs.length - 1].role === 'assistant') msgs.pop()
+    if (!msgs.some((m) => m.role === 'user')) return
+    const updated = { ...active, messages: msgs }
+    saveThread(updated)
+    persist(loadThreads(), updated.id)
+    await runAI(updated, msgs)
   }
 
   function remove(id) {
@@ -187,11 +204,19 @@ export default function AIChatPanel({ compact = false }) {
               )}
               {m.role === 'assistant' && <AssistantCards m={m} threadMessages={messages} />}
               {m.role === 'assistant' && m.source === 'offline' && i > 0 && !m.authExpired && (
-                <div className="text-[11px] opacity-60 mt-1">
-                  {m.offlineReason === 'timeout' && 'Mạng chậm quá — bạn bấm gửi lại giúp mình nhé'}
-                  {m.offlineReason === 'config' && 'Chế độ offline — AI đầy đủ cần cấu hình key'}
-                  {(!m.offlineReason || m.offlineReason === 'busy') && 'AI đang bận, thử lại sau 1–2 phút nhé'}
-                </div>
+                <>
+                  <div className="text-[11px] opacity-60 mt-1">
+                    {m.offlineReason === 'timeout' && 'Mạng chậm quá — bấm gửi lại giúp mình nhé'}
+                    {m.offlineReason === 'config' && 'Chế độ offline — AI đầy đủ cần cấu hình key'}
+                    {(!m.offlineReason || m.offlineReason === 'busy') && 'AI đang bận, thử lại sau 1–2 phút nhé'}
+                  </div>
+                  <button
+                    onClick={() => retryLast()}
+                    className="mt-1.5 text-[12px] font-medium px-3 py-1.5 rounded-pill bg-lime text-forest hover:opacity-80"
+                  >
+                    Thử lại
+                  </button>
+                </>
               )}
             </div>
           </div>

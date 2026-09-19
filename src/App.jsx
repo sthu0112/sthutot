@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Booking from './pages/Booking'
 import SoiDa from './pages/SoiDa'
+import ThienNhien from './pages/ThienNhien'
 import AIChatPage from './pages/AIChat'
 import { CamNangList, CamNangDetail } from './pages/CamNang'
 import PatientPortal from './pages/PatientPortal'
@@ -54,6 +55,7 @@ function AppRoutes() {
       <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
       <Route path="/dat-lich" element={<Booking />} />
       <Route path="/soi-da" element={<SoiDa />} />
+      <Route path="/cham-soc-tu-nhien" element={<ThienNhien />} />
       <Route path="/tro-ly-ai" element={<AIChatPage />} />
       <Route path="/cam-nang" element={<CamNangList />} />
       <Route path="/cam-nang/:slug" element={<CamNangDetail />} />
