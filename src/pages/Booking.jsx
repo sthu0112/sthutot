@@ -235,7 +235,7 @@ export default function Booking() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF9]">
-      <div className="max-w-[760px] mx-auto px-4 sm:px-6 py-6 md:py-10">
+      <div className="w-full px-4 sm:px-8 lg:px-12 py-6 md:py-10">
         <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"><ArrowLeft size={16} /> Về trang chủ</Link>
         <h1 className="font-display font-extrabold tracking-tight text-2xl sm:text-3xl mt-3">Đặt lịch khám da liễu</h1>
         <p className="text-sm text-slate-500 mt-1">Điền đủ từng bước mới qua tiếp — để bác sĩ hiểu đúng da bạn.</p>
@@ -253,14 +253,15 @@ export default function Booking() {
           ))}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-[24px] p-5 sm:p-6 mt-4">
+        <div className="grid lg:grid-cols-[1fr_340px] gap-5 mt-4 items-start">
+        <div className="bg-white border border-slate-200 rounded-[24px] p-5 sm:p-6 min-w-0">
           {err && <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 flex gap-2"><AlertCircle size={15} className="shrink-0 mt-0.5" />{err}</div>}
 
           {step === 0 && (
             <div className="space-y-4">
               <div>
                 <div className="text-xs font-bold tracking-widest text-slate-500">1. CHỌN NHÓM BỆNH *</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 mt-2">
                   {SPECIALTIES.map((s) => (
                     <button
                       key={s.slug}
@@ -290,7 +291,7 @@ export default function Booking() {
             <div className="space-y-4">
               <div>
                 <div className="text-xs font-bold tracking-widest text-slate-500">BÁC SĨ GỢI Ý THEO {specialty ? `“${specialty.name.toUpperCase()}”` : 'CHUYÊN KHOA'}</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 mt-2">
                   <button type="button" onClick={() => setForm({ ...form, doctor_user_id: '', doctor_name: '' })} className={`text-left p-3.5 rounded-2xl border ${!form.doctor_user_id ? 'border-emerald-500 bg-emerald-50/60' : 'border-slate-200 bg-white'}`}>
                     <div className="text-sm font-bold">Để hệ thống tự gán</div>
                     <div className="text-xs text-slate-500">Admin/bác sĩ phù hợp nhất sẽ nhận lịch</div>
@@ -353,9 +354,11 @@ export default function Booking() {
           {step === 3 && (
             <div className="space-y-3">
               <p className="text-sm text-slate-600">Mỗi mục chọn <b>Không</b> hoặc <b>Có</b>. Nếu chọn <b>Có</b> thì phải ghi rõ mới được qua bước tiếp theo.</p>
+              <div className="grid xl:grid-cols-3 gap-3 items-start">
               <HistoryToggle label="Tiền sử da" hint="VD: từng bị viêm da cơ địa, vảy nến, mụn nặng…" value={form.skin.has ? 'yes' : 'no'} detail={form.skin.detail} onChange={(v) => setForm({ ...form, skin: v })} />
               <HistoryToggle label="Dị ứng thuốc" hint="VD: penicillin gây mẩn ngứa…" value={form.allergy.has ? 'yes' : 'no'} detail={form.allergy.detail} onChange={(v) => setForm({ ...form, allergy: v })} />
               <HistoryToggle label="Thuốc đang dùng" hint="VD: isotretinoin 10mg/ngày từ 01/2026…" value={form.meds.has ? 'yes' : 'no'} detail={form.meds.detail} onChange={(v) => setForm({ ...form, meds: v })} />
+              </div>
             </div>
           )}
 
@@ -380,6 +383,22 @@ export default function Booking() {
             {step < 4 && <button onClick={next} className="flex-1 py-3 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 inline-flex items-center justify-center gap-2">Tiếp tục <ArrowRight size={16} /></button>}
             {step === 4 && <button onClick={submit} disabled={submitting} className="flex-1 py-3 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50">{submitting ? 'Đang gửi…' : 'Xác nhận đặt lịch'}</button>}
           </div>
+        </div>
+
+        <aside className="bg-white border border-slate-200 rounded-[24px] p-5 lg:sticky lg:top-24">
+          <div className="text-xs font-bold tracking-widest text-slate-500">TÓM TẮT LỊCH HẸN</div>
+          <div className="mt-3 space-y-2.5 text-sm">
+            <div><div className="text-xs text-slate-400 font-semibold">Nhóm bệnh</div><div className="font-bold">{specialty?.name || <span className="text-slate-300 font-medium">Chưa chọn</span>}</div></div>
+            <div><div className="text-xs text-slate-400 font-semibold">Bác sĩ</div><div className="font-bold">{form.doctor_name || <span className="text-slate-300 font-medium">Hệ thống tự gán</span>}</div></div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><div className="text-xs text-slate-400 font-semibold">Ngày khám</div><div className="font-bold">{form.date || <span className="text-slate-300 font-medium">—</span>}</div></div>
+              <div><div className="text-xs text-slate-400 font-semibold">Giờ</div><div className="font-bold">{form.time_slot || <span className="text-slate-300 font-medium">—</span>}</div></div>
+            </div>
+            <div><div className="text-xs text-slate-400 font-semibold">Bệnh nhân</div><div className="font-bold">{form.full_name || <span className="text-slate-300 font-medium">Chưa nhập</span>}</div></div>
+            {form.symptoms ? <div><div className="text-xs text-slate-400 font-semibold">Triệu chứng</div><div className="text-[13px] text-slate-600 line-clamp-2">{form.symptoms}</div></div> : null}
+          </div>
+          <div className="mt-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">Xác nhận trong 15 phút giờ hành chính. Mang theo giấy tờ tùy thân khi đi khám.</div>
+        </aside>
         </div>
 
         <div className="text-center mt-4">
