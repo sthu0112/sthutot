@@ -86,7 +86,7 @@ export default function Landing() {
             <span className="font-sans font-semibold tracking-tight text-[18px]">DermaCare</span>
             <span className="w-2 h-2 rounded-full bg-forest" />
           </div>
-          <nav className="hidden md:flex items-center gap-8 text-[16px] font-sans text-forest">
+          <nav className="hidden md:flex items-center gap-6 text-[15px] font-sans text-forest whitespace-nowrap">
             <a href="#tong-quan" className="hover:opacity-70">Tổng quan</a>
             <a href="#chuyen-khoa" className="hover:opacity-70">Chuyên khoa</a>
             <a href="#do-tuoi" className="hover:opacity-70">Độ tuổi</a>

@@ -636,14 +636,14 @@ function computeSkinBaseline(img, face, skin, W, H) {
 // Đỏ viêm = đỏ HƠN baseline (kênh R-G, R-B vượt trội), không phải đỏ tuyệt đối
 function isRedAdaptive(r, g, b, base) {
   if (!base || r < 90) return false;
-  return ((r - g) - base.rg > 14) && ((r - b) - base.rb > 12) && (r > base.r * 0.7);
+  return ((r - g) - base.rg > 11) && ((r - b) - base.rb > 10) && (r > base.r * 0.7);
 }
 // Thâm = TỐI hơn baseline + sắc nâu (loại bóng đổ xám)
 function isBrownAdaptive(r, g, b, base) {
   if (!base) return false;
   const y = 0.299 * r + 0.587 * g + 0.114 * b;
-  if (y > base.y * 0.88) return false;
-  return (r - g) >= 6 && (r - g) <= 48 && (r - b) > 14 && r >= g && g >= b - 6;
+  if (y > base.y * 0.90) return false;
+  return (r - g) >= 5 && (r - g) <= 50 && (r - b) > 14 && r >= g && g >= b - 6;
 }
 // Nhân mủ vàng-trắng SÁNG hơn baseline (tránh nhầm quầng da trong bbox)
 function isPusAdaptive(r, g, b, base) {
@@ -934,10 +934,10 @@ function verifyRedCandidate(F, base, medianY) {
   if (F.shadowOverlap > 0.4) return { keep: false, reason: "shadow" };
   if (F.hiOverlap > 0.3) return { keep: false, reason: "glare" };
   if (F.aspect > 4.5 || F.fill < 0.22) return { keep: false, reason: "shape" };
-  if (F.bound < 0.25) return { keep: false, reason: "boundary" };
+  if (F.bound < 0.22) return { keep: false, reason: "boundary" };
   if (!F.ring) return { keep: false, reason: "noring" };
-  if ((F.mean.rg - F.ring.rg) < 8 || (F.mean.rb - F.ring.rb) < 6) return { keep: false, reason: "contrast" };
-  if (((F.mean.rn - F.mean.gn) - (F.ring.rn - F.ring.gn)) <= 0.012) return { keep: false, reason: "persist" };
+  if ((F.mean.rg - F.ring.rg) < 6 || (F.mean.rb - F.ring.rb) < 5) return { keep: false, reason: "contrast" };
+  if (((F.mean.rn - F.mean.gn) - (F.ring.rn - F.ring.gn)) <= 0.009) return { keep: false, reason: "persist" };
   if (!liftPersistCheck(F.mean, base, medianY, "red")) return { keep: false, reason: "lift" };
   const k = classifyRedBlob(F.area, F.coreRatio);
   if (k.cls === "diffuse") return { keep: false, reason: "diffuse" };
@@ -952,9 +952,9 @@ function verifyBrownCandidate(F, base, medianY) {
   if (F.hiOverlap > 0.3) return { keep: false, reason: "glare" };
   if (F.aspect > 5 || F.fill < 0.2) return { keep: false, reason: "shape" };
   if (!F.ring) return { keep: false, reason: "noring" };
-  if ((F.ring.y - F.mean.y) < 10) return { keep: false, reason: "contrast" };
+  if ((F.ring.y - F.mean.y) < 7) return { keep: false, reason: "contrast" };
   const s = F.mean.r + F.mean.g + F.mean.b || 1, rn = F.mean.r / s, gn = F.mean.g / s;
-  if (!(rn > 0.32 && rn < 0.48 && gn > 0.26 && gn < 0.37)) return { keep: false, reason: "chroma" };
+  if (!(rn > 0.30 && rn < 0.50 && gn > 0.25 && gn < 0.38)) return { keep: false, reason: "chroma" };
   if (!liftPersistCheck(F.mean, base, medianY, "brown")) return { keep: false, reason: "lift" };
   const conf = clamp(0.6 + Math.min(0.2, F.area / 1200) + 0.05 * F.bound, 0.5, 0.9);
   if (conf < 0.55) return { keep: false, reason: "lowconf" };
@@ -967,7 +967,7 @@ function verifyDarkCandidate(F, white) {
   if (F.aspect > 4 || F.fill < 0.25) return { keep: false, reason: "shape" };
   if (F.bound < 0.2) return { keep: false, reason: "boundary" };
   if (!F.ring) return { keep: false, reason: "noring" };
-  if ((white ? (F.mean.y - F.ring.y) : (F.ring.y - F.mean.y)) < (white ? 20 : 18)) return { keep: false, reason: "contrast" };
+  if ((white ? (F.mean.y - F.ring.y) : (F.ring.y - F.mean.y)) < (white ? 18 : 15)) return { keep: false, reason: "contrast" };
   if (F.mean.sat > 35) return { keep: false, reason: "chroma" };
   const conf = clamp(0.58 + Math.min(0.2, F.area / 500) + 0.06 * F.bound, 0.5, 0.88);
   if (conf < 0.55) return { keep: false, reason: "lowconf" };
@@ -1083,10 +1083,10 @@ function detectLesions(canvas, masks, roiMasks, anchors, aux) {
       return ok;
     };
     let cand = [
-      ...verify(findBlobs(cut(mRed), W, H, 20, 1400), cut(mRed), "red"),
-      ...verify(findBlobs(cut(mDark), W, H, 10, 220), cut(mDark), "dark"),
-      ...verify(findBlobs(cut(mWhite), W, H, 10, 200), cut(mWhite), "white"),
-      ...verify(findBlobs(cut(mBrown), W, H, 40, 2500), cut(mBrown), "brown"),
+      ...verify(findBlobs(cut(mRed), W, H, 15, 1400), cut(mRed), "red"),
+      ...verify(findBlobs(cut(mDark), W, H, 8, 220), cut(mDark), "dark"),
+      ...verify(findBlobs(cut(mWhite), W, H, 8, 200), cut(mWhite), "white"),
+      ...verify(findBlobs(cut(mBrown), W, H, 28, 2500), cut(mBrown), "brown"),
     ];
     // nốt sắc tố: blob đậm đủ to + chấm ABCDE trước, rồi xác minh hình thái/ranh giới
     const moleCut = cut(mMole);
@@ -1233,7 +1233,7 @@ function drawOverlay(angle, lesions, oval) {
     x.strokeStyle = CLASS_COLOR[l.class] || "#fff"; x.lineWidth = 2.4;
     x.strokeRect(a, b2, c2 - a + 1, d2 - b2 + 1);
     const t = `${l.rank || (idx + 1)}.${TAG[l.class] || "?"}`; // số thứ tự khớp Top 12 bên dưới
-    x.font = "bold 11px sans-serif";
+    x.font = "bold 12px sans-serif";
     const tw = x.measureText(t).width;
     x.fillStyle = CLASS_COLOR[l.class] || "#fff";
     x.fillRect(a, Math.max(0, b2 - 14), tw + 6, 14);

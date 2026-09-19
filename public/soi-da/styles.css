@@ -14,20 +14,21 @@ body{margin:0;background:var(--bg);color:var(--txt);
 h1,h2,h3,h4,b,strong{font-weight:800;letter-spacing:-.01em}
 button,select,input,textarea{font-family:inherit}
 :focus-visible{outline:2px solid var(--forest);outline-offset:2px}
-.top{position:sticky;top:0;z-index:20;background:rgba(252,252,247,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top{background:var(--bg);border-bottom:1px solid var(--line)}
 .announce{background:var(--lime);color:var(--forest);text-align:center;font-size:13px;font-weight:800;padding:8px 12px}
 .announce .pill-new{background:var(--forest);color:var(--lime);border-radius:1000px;padding:2px 10px;margin-right:8px;font-size:12px}
 .announce a{color:var(--forest);text-decoration:underline;text-underline-offset:3px;margin-left:8px;font-weight:800}
-.toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 22px}
-.brand{font-size:19px;font-weight:800;color:var(--forest);text-decoration:none;display:flex;align-items:center;gap:8px}
+.toprow{display:flex;align-items:center;justify-content:space-between;gap:16px;height:80px;padding:0 22px}
+@media(min-width:1024px){.toprow{padding:0 48px}}
+.brand{font-size:18px;font-weight:600;color:var(--forest);text-decoration:none;display:flex;align-items:center;gap:8px;letter-spacing:-.02em}
 .brand i{font-style:normal;width:8px;height:8px;border-radius:50%;background:var(--forest)}
-.sitenav{display:flex;align-items:center;gap:26px}
-.sitenav a{color:var(--forest);text-decoration:none;font-size:16px;font-weight:500;white-space:nowrap}
+.sitenav{display:flex;align-items:center;gap:32px}
+.sitenav a{color:var(--forest);text-decoration:none;font-size:16px;font-weight:400;white-space:nowrap}
 .sitenav a:hover{opacity:.7}
-.sitenav a.active{font-weight:800;border-bottom:2px solid var(--forest);padding-bottom:2px}
+.sitenav a.active{font-weight:700;border-bottom:2px solid var(--forest);padding-bottom:2px}
 .topbtn{display:flex;align-items:center;gap:12px}
-.btn-login{border:1.5px solid var(--forest);border-radius:1000px;padding:12px 20px;color:var(--forest);text-decoration:none;font-weight:700;font-size:15px;white-space:nowrap}
-.btn-reg{background:var(--forest);color:var(--lime);border-radius:1000px;padding:12px 20px;text-decoration:none;font-weight:700;font-size:15px;white-space:nowrap}
+.btn-login{border:1.5px solid var(--forest);border-radius:1000px;padding:16px 24px;color:var(--forest);text-decoration:none;font-weight:400;font-size:16px;white-space:nowrap}
+.btn-reg{background:var(--forest);color:var(--lime);border-radius:1000px;padding:16px 24px;text-decoration:none;font-weight:400;font-size:16px;white-space:nowrap}
 .btn-login:hover,.btn-reg:hover{opacity:.85}
 .stepsbar{display:flex;gap:8px;justify-content:center;padding:0 12px 10px}
 @media(max-width:1100px){.sitenav{display:none}}
