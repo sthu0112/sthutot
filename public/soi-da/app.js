@@ -11,9 +11,15 @@ const CLASS_COLOR = { pustule: "#ef4444", papule: "#fb923c", comedone: "#eab308"
 const CLASS_VI = { pustule: "Mụn mủ/viêm", papule: "Sẩn viêm", comedone: "Mụn đầu đen", whitehead: "Mụn đầu trắng", pih: "Thâm PIH", mole: "Nốt sắc tố", nodule: "Cục/nang" };
 
 // ---------- init ----------
-if (typeof window !== "undefined") window.addEventListener("DOMContentLoaded", () => {
+// Init đặt tên để trang React gọi lại sau khi mount (script nạp động, DOMContentLoaded đã qua)
+function initDermaCare() {
+  if (window.__soidaInit) return;
+  window.__soidaInit = true;
+  const BASE = window.__SOIDA_BASE__ || "";
   ANGLES.forEach(a => {
-    document.getElementById("file-" + a).addEventListener("change", async e => {
+    const inp = document.getElementById("file-" + a);
+    if (!inp) return;
+    inp.addEventListener("change", async e => {
       const f = e.target.files[0]; if (!f) return;
       const url = URL.createObjectURL(f);
       const img = new Image();
@@ -27,10 +33,14 @@ if (typeof window !== "undefined") window.addEventListener("DOMContentLoaded", (
       img.src = url;
     });
   });
-  fetch("kb.json").then(r => r.json()).then(j => {
+  fetch(BASE + "kb.json").then(r => r.json()).then(j => {
     KB = j;
-    document.getElementById("kbView").textContent = JSON.stringify(j.triage_rules, null, 2).slice(0, 3000);
-  }).catch(() => { document.getElementById("kbView").textContent = "Không load được kb.json"; });
+    const kv = document.getElementById("kbView");
+    if (kv) kv.textContent = JSON.stringify(j.triage_rules, null, 2).slice(0, 3000);
+  }).catch(() => {
+    const kv = document.getElementById("kbView");
+    if (kv) kv.textContent = "Không load được kb.json";
+  });
   setTarget("left_cheek");
   try { listCameras(); } catch {}
   const sel = document.getElementById("camDevice");
@@ -52,7 +62,11 @@ if (typeof window !== "undefined") window.addEventListener("DOMContentLoaded", (
       pop.style.display = "none";
     }
   });
-});
+}
+if (typeof window !== "undefined") {
+  if (document.readyState === "loading") window.addEventListener("DOMContentLoaded", initDermaCare);
+  else initDermaCare();
+}
 // Thiết bị: máy tính -> gợi ý dùng điện thoại + QR sang link test
 function initDevicePrompt() {
   try {
