@@ -57,7 +57,16 @@ export default function SoiDa() {
     }
   }, [])
 
-  const shoot = W('captureWithCountdown')
+  const shoot = () => {
+    try {
+      if (typeof window.captureWithCountdown !== 'function') {
+        const st = document.getElementById('camStatus')
+        if (st) st.textContent = '⚠️ Engine chưa tải xong (mất mạng?). Đợi 3 giây rồi bấm Chụp lại giúp mình.'
+        return
+      }
+      W('captureWithCountdown')()
+    } catch {}
+  }
   const openCam = W('openCamera')
   const stopCam = () => W('stopCamera')()
   const retake = W('retakeCurrent')
@@ -157,7 +166,7 @@ export default function SoiDa() {
               </div>
               <div className="flex gap-2 flex-wrap my-2 items-center">
                 <button id="btnOpenCam" onClick={openCam} className="rounded-pill bg-forest text-lime px-4 py-2.5 text-[14px] font-bold w-full sm:w-auto">▶ Mở camera</button>
-                <button id="btnShoot" onClick={shoot} disabled className="rounded-pill bg-forest text-lime px-5 py-3 text-[15px] font-bold disabled:opacity-45 w-full sm:w-auto">📸 Chụp (3-2-1)</button>
+                <button id="btnShoot" onClick={shoot} className="rounded-pill bg-forest text-lime px-5 py-3 text-[15px] font-bold w-full sm:w-auto">📸 Chụp (3-2-1)</button>
                 <button onClick={() => W('uploadForCurrent')()} className="rounded-pill bg-lime text-forest px-5 py-3 text-[15px] font-bold w-full sm:w-auto">📤 Tải ảnh góc này lên</button>
                 <button onClick={stopCam} className="rounded-pill bg-white border border-forest/15 px-4 py-2.5 text-[14px] font-bold">Dừng</button>
                 <button onClick={() => W('diagCamera')()} className="rounded-pill bg-white border border-forest/15 px-4 py-2.5 text-[14px] font-bold">🔧 Kiểm tra</button>

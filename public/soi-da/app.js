@@ -168,7 +168,8 @@ function updateProgress() {
     if (b) b.classList.toggle("done", !!state[a].img);
   });
   const btn = document.getElementById("btnShoot");
-  if (btn) btn.disabled = !(camStream && !isCounting);
+  // Nút Chụp LUÔN bấm được — thiếu camera thì tự mở, lỗi thì báo rõ (không khóa nút gây chết im)
+  if (btn) btn.disabled = false;
 }
 async function listCameras() {
   try {
@@ -300,7 +301,18 @@ async function ensureTrackFM() {
 }
 function startLiveLoop() {
   cancelAnimationFrame(trackRAF);
-  const tick = () => { liveFrame(); trackRAF = requestAnimationFrame(tick); };
+  let errShown = false;
+  const tick = () => {
+    try { liveFrame(); }
+    catch (e) {
+      if (!errShown) {
+        errShown = true;
+        const st = el("camStatus");
+        if (st) st.textContent = "⚠️ Khung hình lỗi: " + (e.message || e) + " — thử Dừng rồi Mở camera lại.";
+      }
+    }
+    trackRAF = requestAnimationFrame(tick);
+  };
   tick();
 }
 function faceBoxOfVideo(v, lm) {
