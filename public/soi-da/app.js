@@ -10,15 +10,18 @@ let KB = null;
 const CLASS_COLOR = { pustule: "#ef4444", papule: "#fb923c", comedone: "#eab308", whitehead: "#facc15", pih: "#a855f7", mole: "#ff00aa", nodule: "#dc2626" };
 const CLASS_VI = { pustule: "Mụn mủ/viêm", papule: "Sẩn viêm", comedone: "Mụn đầu đen", whitehead: "Mụn đầu trắng", pih: "Thâm PIH", mole: "Nốt sắc tố", nodule: "Cục/nang" };
 
+// Helper lấy element — ĐẶT ĐẦU FILE vì init có thể chạy ngay khi script nạp động
+const el = id => document.getElementById(id);
+
 // ---------- init ----------
 // Init đặt tên để trang React gọi lại sau khi mount (script nạp động, DOMContentLoaded đã qua)
 function initDermaCare() {
   if (window.__soidaInit) return;
-  window.__soidaInit = true;
   const BASE = window.__SOIDA_BASE__ || "";
   ANGLES.forEach(a => {
     const inp = document.getElementById("file-" + a);
-    if (!inp) return;
+    if (!inp || inp.dataset.soibound) return;
+    inp.dataset.soibound = "1";
     inp.addEventListener("change", async e => {
       const f = e.target.files[0]; if (!f) return;
       const url = URL.createObjectURL(f);
@@ -49,6 +52,7 @@ function initDermaCare() {
   // glossary: bấm vào thuật ngữ -> popup giải thích (gỡ handler cũ để remount React không bind trùng)
   document.removeEventListener("click", __soidaDocClick);
   document.addEventListener("click", __soidaDocClick);
+  window.__soidaInit = true; // chỉ khóa khi init chạy trọn vẹn — lỗi giữa chừng thì lần sau thử lại được
 }
 function __soidaDocClick(e) {
   const t = e.target.closest ? e.target.closest(".g") : null;
@@ -65,9 +69,22 @@ function __soidaDocClick(e) {
     pop.style.display = "none";
   }
 }
+let __soidaBootTries = 0;
+function __soidaBoot() {
+  // Chạy sau khi script eval xong (hết mọi TDZ) + chờ React mount đủ khung hình
+  try {
+    if (!document.getElementById("liveCanvas")) {
+      if (__soidaBootTries++ < 40) setTimeout(__soidaBoot, 300);
+      return;
+    }
+    initDermaCare();
+  } catch (e) {
+    if (__soidaBootTries++ < 40) setTimeout(__soidaBoot, 500);
+  }
+}
 if (typeof window !== "undefined") {
-  if (document.readyState === "loading") window.addEventListener("DOMContentLoaded", initDermaCare);
-  else initDermaCare();
+  if (document.readyState === "loading") window.addEventListener("DOMContentLoaded", __soidaBoot);
+  else setTimeout(__soidaBoot, 0);
 }
 // Thiết bị: máy tính -> gợi ý dùng điện thoại + QR sang link test
 function initDevicePrompt() {
@@ -166,7 +183,6 @@ async function listCameras() {
     });
   } catch {}
 }
-const el = id => document.getElementById(id);
 function setStepBar(n) {
   ["s1", "s2", "s3"].forEach((id, i) => {
     const b = el(id); if (!b) return;
