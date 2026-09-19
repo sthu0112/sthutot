@@ -1763,6 +1763,14 @@ function openBooking() {
   el("bookModal").style.display = "flex";
 }
 function closeBooking() { el("bookModal").style.display = "none"; }
+// Sang trang đặt lịch chính của web, điền sẵn chuyên khoa + tóm tắt soi da
+function bookOnline() {
+  const agg = window.__lastAgg;
+  if (!agg) { alert("Chưa có kết quả phân tích."); return; }
+  const base = (/localhost|127\.0\.0\.1/.test(location.hostname)) ? PUBLIC_URL : location.origin;
+  const vanDe = `Soi da AI: ${agg.cond} (GAGS ${agg.gags}/28, viêm ${agg.pust}, nhân ${agg.comed}, thâm ${agg.pih}, mức ${agg.triage})`.slice(0, 400);
+  window.open(`${base}/dat-lich?chuyen-khoa=${encodeURIComponent(agg.slug || "")}&van-de=${encodeURIComponent(vanDe)}`, "_blank");
+}
 function bookingSummaryText(info, agg) {
   const L = [];
   L.push(`HỒ SƠ SOI DA DERMACARE (AI hỗ trợ, không thay thế bác sĩ)`);
