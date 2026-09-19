@@ -114,8 +114,8 @@
     { "id": "suspicious-pigmented", "label_vi": "Nốt sắc tố cần theo dõi", "vec": [0.05, 0.05, 0.3, 0.05, 0.9] }
   ],
   "gags_reference": {
-    "note": "Chuẩn Doshi 1997 (Int J Dermatol): 6 vùng gồm ngực/lưng (factor 3). App chỉ chụp mặt -> face-only, max 32, temples báo riêng không vào GAGS. Bands giữ nguyên.",
-    "factors": { "forehead": 2, "right_cheek": 2, "left_cheek": 2, "nose": 1, "chin": 1 },
+    "note": "Chuẩn Doshi 1997 (Int J Dermatol). App trừ vùng mắt + mũi khỏi phân tích nên GAGS face-only còn Trán(2) + Má T(2) + Má P(2) + Cằm(1), max 28. Bands giữ nguyên.",
+    "factors": { "forehead": 2, "right_cheek": 2, "left_cheek": 2, "chin": 1 },
     "grades": { "0": "Không tổn thương", "1": "≥1 comedone", "2": "≥1 sẩn (papule)", "3": "≥1 mụn mủ (pustule)", "4": "≥1 cục/nang (nodule/cyst)" },
     "bands": { "mild": "1-18", "moderate": "19-30", "severe": "31-38", "very_severe": ">39" }
   }

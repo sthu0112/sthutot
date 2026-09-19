@@ -682,7 +682,23 @@ function circleInto(dst, W, H, cx, cy, rad) {
     for (let x = Math.max(0, Math.floor(cx - rad)); x < Math.min(W, cx + rad); x++)
       if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= rad * rad) dst[y * W + x] = 1;
 }
-// Vùng phân tích = skin ∩ oval mặt ∩ ¬(mắt/môi/mày/lỗ mũi). Nền (bình nước, kệ, tường) bị loại ở đây.
+// Dải sống mũi -> đầu mũi (FACEMESH_NOSE): loại khỏi phân tích theo yêu cầu (chỉ soi da, không soi mũi)
+function noseStripPoly(lm, W, H, hw) {
+  const ids = [168, 6, 197, 195, 5, 4, 1, 2];
+  const pts = ids.filter(i => lm[i]).map(i => ({ x: lm[i].x * W, y: lm[i].y * H }));
+  if (pts.length < 2) return null;
+  const w = Math.max(6, hw * 0.17);
+  const L = [], R = [];
+  for (let k = 0; k < pts.length; k++) {
+    const a = pts[Math.max(0, k - 1)], b = pts[Math.min(pts.length - 1, k + 1)];
+    let dx = b.x - a.x, dy = b.y - a.y;
+    const m = Math.hypot(dx, dy) || 1; dx /= m; dy /= m;
+    L.push({ x: pts[k].x - dy * w, y: pts[k].y + dx * w });
+    R.push({ x: pts[k].x + dy * w, y: pts[k].y - dx * w });
+  }
+  return L.concat(R.reverse());
+}
+// Vùng phân tích = skin ∩ oval mặt ∩ ¬(mắt/mày/môi/mũi). Mắt + mũi LOẠI HẲN khỏi phân tích.
 function buildFaceMasks(canvas, lm) {
   const W = canvas.width, H = canvas.height;
   const img = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, W, H).data;
@@ -696,19 +712,24 @@ function buildFaceMasks(canvas, lm) {
     ovalBox = { x: W * 0.2, y: H * 0.08, w: W * 0.6, h: H * 0.84 };
   }
   const ovalMask = oval ? polyMask(oval, W, H) : ellipseMask(ovalBox, W, H);
-  const excl = new Uint8Array(W * H); // mắt/môi/mày/mũi: son môi đỏ, tròng trắng... không phải mụn
+  const excl = new Uint8Array(W * H);
+  const eyeMask = new Uint8Array(W * H); // riêng vùng mắt để veto blob
   if (lm) {
-    [EYE_IMG_L, EYE_IMG_R, BROW_L, BROW_R, LIPS_IDX].forEach(set => {
-      dilateInto(polyMask(set.map(i => ({ x: lm[i].x * W, y: lm[i].y * H })), W, H), excl, W, H, 2);
-    });
+    const P = set => polyMask(set.map(i => ({ x: lm[i].x * W, y: lm[i].y * H })), W, H);
+    [BROW_L, BROW_R].forEach(set => dilateInto(P(set), excl, W, H, 4));
+    dilateInto(P(LIPS_IDX), excl, W, H, 3);
+    [EYE_IMG_L, EYE_IMG_R].forEach(set => { const m = P(set); dilateInto(m, excl, W, H, 6); dilateInto(m, eyeMask, W, H, 6); });
     circleInto(excl, W, H, lm[LI.NOSE_BOT].x * W, lm[LI.NOSE_BOT].y * H, Math.max(4, W * 0.022));
+    const hw = (Math.max(...OVAL_IDX.map(i => lm[i].x)) - Math.min(...OVAL_IDX.map(i => lm[i].x))) * W / 2;
+    const strip = noseStripPoly(lm, W, H, hw);
+    if (strip) { const sm = polyMask(strip, W, H); for (let i = 0; i < W * H; i++) if (sm[i]) excl[i] = 1; }
   }
   const face = new Uint8Array(W * H);
   let facePx = 0, skinFace = 0;
   for (let i = 0; i < W * H; i++) {
     if (ovalMask[i] && !excl[i]) { face[i] = 1; facePx++; if (skin[i]) skinFace++; }
   }
-  return { img, W, H, skin, ovalMask, excl, face, facePx, skinFace, ovalBox, oval };
+  return { img, W, H, skin, ovalMask, excl, eyeMask, face, facePx, skinFace, ovalBox, oval };
 }
 // Neo vector: brow-line, eye-line, mouth-line, sống mũi 168->1->2, tâm + nửa rộng oval.
 function faceAnchors(lm, W, H) {
@@ -734,14 +755,14 @@ function faceAnchors(lm, W, H) {
 // left_cheek/right_cheek đặt tên THEO ẢNH (trái/phải khung hình).
 function buildRoiMasks(m, a, lm, W, H) {
   const mk = () => new Uint8Array(W * H);
-  const out = { forehead: mk(), temple_l: mk(), temple_r: mk(), left_cheek: mk(), right_cheek: mk(), nose: mk(), perioral: mk(), chin: mk() };
-  if (!a) { // fallback mất mesh: box tỉ lệ cũ ∩ oval
+  const out = { forehead: mk(), temple_l: mk(), temple_r: mk(), left_cheek: mk(), right_cheek: mk(), perioral: mk(), chin: mk() };
+  if (!a) { // fallback mất mesh: box tỉ lệ cũ ∩ oval (không có vùng mũi)
     const b = m.ovalBox;
     const R = (xf0, yf0, xf1, yf1) => [{ x: b.x + b.w * xf0, y: b.y + b.h * yf0 }, { x: b.x + b.w * xf1, y: b.y + b.h * yf0 }, { x: b.x + b.w * xf1, y: b.y + b.h * yf1 }, { x: b.x + b.w * xf0, y: b.y + b.h * yf1 }];
-    const polys = { forehead: R(0.22, 0.0, 0.78, 0.26), temple_l: R(0.02, 0.10, 0.30, 0.30), temple_r: R(0.70, 0.10, 0.98, 0.30), left_cheek: R(0.02, 0.32, 0.38, 0.72), right_cheek: R(0.62, 0.32, 0.98, 0.72), nose: R(0.40, 0.28, 0.60, 0.66), perioral: R(0.33, 0.60, 0.67, 0.80), chin: R(0.28, 0.78, 0.72, 1.0) };
+    const polys = { forehead: R(0.22, 0.0, 0.78, 0.26), temple_l: R(0.02, 0.10, 0.30, 0.30), temple_r: R(0.70, 0.10, 0.98, 0.30), left_cheek: R(0.02, 0.32, 0.38, 0.72), right_cheek: R(0.62, 0.32, 0.98, 0.72), perioral: R(0.33, 0.60, 0.67, 0.80), chin: R(0.28, 0.78, 0.72, 1.0) };
     for (const k of Object.keys(out)) {
       const pm = polyMask(polys[k], W, H);
-      for (let i = 0; i < W * H; i++) if (pm[i] && m.ovalMask[i]) out[k][i] = 1;
+      for (let i = 0; i < W * H; i++) if (pm[i] && m.ovalMask[i] && !m.excl[i]) out[k][i] = 1;
     }
     return out;
   }
@@ -754,12 +775,11 @@ function buildRoiMasks(m, a, lm, W, H) {
     const nx = noseXat(y);
     for (let x = 0; x < W; x++) {
       const i = y * W + x;
-      if (!m.ovalMask[i]) continue;
+      if (!m.ovalMask[i] || m.excl[i]) continue; // mắt/mũi/môi đã loại khỏi mọi vùng
       const dx = (x - a.cx) / a.hw, adx = Math.abs(dx);
       let k = null;
-      // ưu tiên: mũi > quanh miệng > cằm > má > thái dương > trán (không suy vùng này cho vùng khác)
-      if (y >= a.mid.y - 0.02 * a.faceH && y <= a.mouthY + 0.05 * a.faceH && Math.abs(x - nx) < 0.17 * a.hw) k = "nose";
-      else if (y >= a.mouthY - 0.10 * a.faceH && y <= a.mouthY + 0.10 * a.faceH && adx < 0.34) k = "perioral";
+      // ưu tiên: quanh miệng > cằm > má > thái dương > trán (mũi đã loại, không suy vùng này cho vùng khác)
+      if (y >= a.mouthY - 0.10 * a.faceH && y <= a.mouthY + 0.10 * a.faceH && adx < 0.34) k = "perioral";
       else if (y > a.mouthY + 0.04 * a.faceH && adx < 0.72) k = "chin";
       else if (y >= a.mid.y + 0.03 * a.faceH && y <= a.mouthY + 0.16 * a.faceH && dx < -0.08) k = "left_cheek";
       else if (y >= a.mid.y + 0.03 * a.faceH && y <= a.mouthY + 0.16 * a.faceH && dx > 0.08) k = "right_cheek";
@@ -789,7 +809,7 @@ function polyMask(poly, W, H) {
   return m;
 }
 
-const ROI_VI = { forehead: "Trán", temple_l: "Thái dương trái (ảnh)", temple_r: "Thái dương phải (ảnh)", left_cheek: "Má trái (ảnh)", right_cheek: "Má phải (ảnh)", nose: "Mũi", perioral: "Quanh miệng", chin: "Cằm" };
+const ROI_VI = { forehead: "Trán", temple_l: "Thái dương trái (ảnh)", temple_r: "Thái dương phải (ảnh)", left_cheek: "Má trái (ảnh)", right_cheek: "Má phải (ảnh)", perioral: "Quanh miệng", chin: "Cằm" };
 // Phân loại viêm: vùng lan (>900px = đỏ lan tỏa, tính vào erythema, KHÔNG đếm nốt) / nang / có nhân mủ / sẩn
 function classifyRedBlob(area, coreRatio) {
   if (area > 900) return { cls: "diffuse", confidence: 0.5 };
@@ -868,17 +888,18 @@ function graySobel(img, W, H) {
   }
   return { gray, mag };
 }
-// đặc trưng 1 blob: hình thái + màu nốt + vòng da đối chứng + phủ bóng/chói
+// đặc trưng 1 blob: hình thái + màu nốt + vòng da đối chứng + phủ bóng/chói/mắt
 function blobFeatures(cutMask, pusMask, bb, ctx) {
-  const { img, W, H, face, skin, mag, shadowMask, hiMask } = ctx;
+  const { img, W, H, face, skin, mag, shadowMask, hiMask, eyeMask } = ctx;
   const [x0, y0, x1, y1] = bb;
   const w = x1 - x0 + 1, h = y1 - y0 + 1;
-  let n = 0, sR = 0, sG = 0, sB = 0, per = 0, edge = 0, sh = 0, hi = 0, core = 0;
+  let n = 0, sR = 0, sG = 0, sB = 0, per = 0, edge = 0, sh = 0, hi = 0, core = 0, eye = 0;
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const i = y * W + x;
     if (!cutMask[i]) continue;
     n++; sR += img[i * 4]; sG += img[i * 4 + 1]; sB += img[i * 4 + 2];
     if (shadowMask[i]) sh++; if (hiMask[i]) hi++;
+    if (eyeMask && eyeMask[i]) eye++;
     if (pusMask && pusMask[i]) core++;
     if ((x > x0 && !cutMask[i - 1]) || (x < x1 && !cutMask[i + 1]) || (y > y0 && !cutMask[i - W]) || (y < y1 && !cutMask[i + W])) {
       per++; if (mag[i] > 18) edge++;
@@ -902,7 +923,7 @@ function blobFeatures(cutMask, pusMask, bb, ctx) {
     area: n, w, h, aspect: Math.max(w, h) / Math.max(1, Math.min(w, h)), fill: n / (w * h),
     bound: per ? edge / per : 0,
     mean: { r: mr, g: mg, b: mb, y: 0.299 * mr + 0.587 * mg + 0.114 * mb, rn: mr / s, gn: mg / s, rg: mr - mg, rb: mr - mb, sat: Math.max(mr, mg, mb) - Math.min(mr, mg, mb) },
-    ring, shadowOverlap: sh / n, hiOverlap: hi / n, coreRatio: core / n
+    ring, shadowOverlap: sh / n, hiOverlap: hi / n, eyeOverlap: eye / n, coreRatio: core / n
   };
 }
 // đối chứng nâng sáng: so trong không gian sắc độ (bất biến với độ sáng) —
@@ -919,13 +940,14 @@ function liftPersistCheck(blobMean, baseMean, medianY, cls) {
 // B7+B8: quyết định pure từng lớp. KHÔNG đủ bằng chứng -> loại kèm lý do.
 function verifyRedCandidate(F, base, medianY) {
   if (!F) return { keep: false, reason: "empty" };
+  if (F.eyeOverlap > 0.2) return { keep: false, reason: "eye" };
   if (F.shadowOverlap > 0.4) return { keep: false, reason: "shadow" };
   if (F.hiOverlap > 0.3) return { keep: false, reason: "glare" };
   if (F.aspect > 4.5 || F.fill < 0.22) return { keep: false, reason: "shape" };
   if (F.bound < 0.22) return { keep: false, reason: "boundary" };
   if (!F.ring) return { keep: false, reason: "noring" };
-  if ((F.mean.rg - F.ring.rg) < 6 || (F.mean.rb - F.ring.rb) < 5) return { keep: false, reason: "contrast" };
-  if (((F.mean.rn - F.mean.gn) - (F.ring.rn - F.ring.gn)) <= 0.009) return { keep: false, reason: "persist" };
+  if ((F.mean.rg - F.ring.rg) < 5 || (F.mean.rb - F.ring.rb) < 4) return { keep: false, reason: "contrast" };
+  if (((F.mean.rn - F.mean.gn) - (F.ring.rn - F.ring.gn)) <= 0.007) return { keep: false, reason: "persist" };
   if (!liftPersistCheck(F.mean, base, medianY, "red")) return { keep: false, reason: "lift" };
   const k = classifyRedBlob(F.area, F.coreRatio);
   if (k.cls === "diffuse") return { keep: false, reason: "diffuse" };
@@ -936,11 +958,12 @@ function verifyRedCandidate(F, base, medianY) {
 }
 function verifyBrownCandidate(F, base, medianY) {
   if (!F) return { keep: false, reason: "empty" };
+  if (F.eyeOverlap > 0.2) return { keep: false, reason: "eye" };
   if (F.shadowOverlap > 0.6) return { keep: false, reason: "shadow" };
   if (F.hiOverlap > 0.3) return { keep: false, reason: "glare" };
   if (F.aspect > 5 || F.fill < 0.2) return { keep: false, reason: "shape" };
   if (!F.ring) return { keep: false, reason: "noring" };
-  if ((F.ring.y - F.mean.y) < 7) return { keep: false, reason: "contrast" };
+  if ((F.ring.y - F.mean.y) < 6) return { keep: false, reason: "contrast" };
   const s = F.mean.r + F.mean.g + F.mean.b || 1, rn = F.mean.r / s, gn = F.mean.g / s;
   if (!(rn > 0.30 && rn < 0.50 && gn > 0.25 && gn < 0.38)) return { keep: false, reason: "chroma" };
   if (!liftPersistCheck(F.mean, base, medianY, "brown")) return { keep: false, reason: "lift" };
@@ -950,6 +973,7 @@ function verifyBrownCandidate(F, base, medianY) {
 }
 function verifyDarkCandidate(F, white) {
   if (!F) return { keep: false, reason: "empty" };
+  if (F.eyeOverlap > 0.2) return { keep: false, reason: "eye" };
   if (F.shadowOverlap > 0.5) return { keep: false, reason: "shadow" };
   if (F.hiOverlap > 0.3) return { keep: false, reason: "glare" };
   if (F.aspect > 4 || F.fill < 0.25) return { keep: false, reason: "shape" };
@@ -963,6 +987,7 @@ function verifyDarkCandidate(F, white) {
 }
 function verifyMoleCandidate(F, flags) {
   if (!F) return { keep: false, reason: "empty" };
+  if (F.eyeOverlap > 0.2) return { keep: false, reason: "eye" };
   if (F.shadowOverlap > 0.5) return { keep: false, reason: "shadow" };
   if (F.hiOverlap > 0.3) return { keep: false, reason: "glare" };
   if (F.bound < 0.35) return { keep: false, reason: "boundary" };
@@ -1050,7 +1075,7 @@ function detectLesions(canvas, masks, roiMasks, anchors, aux) {
     const rm = roiMasks[roi];
     const cut = src => { const o = new Uint8Array(W * H); for (let i = 0; i < W * H; i++) if (src[i] && rm[i]) o[i] = 1; return o; };
     const pusCut = cut(mPus);
-    const vctx = { img, W, H, face, skin, mag, shadowMask: illum.shadowMask, hiMask: illum.hiMask };
+    const vctx = { img, W, H, face, skin, mag, shadowMask: illum.shadowMask, hiMask: illum.hiMask, eyeMask: masks.eyeMask };
     const medianY = illum.medianY, baseM = base;
     // B6 ứng viên (nhạy) -> B7+B8 xác minh từng ứng viên (đặc hiệu): bóng/chói/hình thái/ranh giới/
     // tương phản cục bộ/vòng sắc độ/nâng sáng -> confidence. Nghi ngờ = loại.
@@ -1072,9 +1097,9 @@ function detectLesions(canvas, masks, roiMasks, anchors, aux) {
     };
     let cand = [
       ...verify(findBlobs(cut(mRed), W, H, 15, 1400), cut(mRed), "red"),
-      ...verify(findBlobs(cut(mDark), W, H, 8, 220), cut(mDark), "dark"),
+      ...verify(findBlobs(cut(mDark), W, H, 7, 220), cut(mDark), "dark"),
       ...verify(findBlobs(cut(mWhite), W, H, 8, 200), cut(mWhite), "white"),
-      ...verify(findBlobs(cut(mBrown), W, H, 28, 2500), cut(mBrown), "brown"),
+      ...verify(findBlobs(cut(mBrown), W, H, 22, 2500), cut(mBrown), "brown"),
     ];
     // nốt sắc tố: blob đậm đủ to + chấm ABCDE trước, rồi xác minh hình thái/ranh giới
     const moleCut = cut(mMole);
@@ -1089,7 +1114,7 @@ function detectLesions(canvas, masks, roiMasks, anchors, aux) {
       }), moleCut, "mole"));
     const byCls = {};
     cand.forEach(o => { (byCls[o.cls] = byCls[o.cls] || []).push(o); });
-    const caps = { nodule: 20, pustule: 50, papule: 50, comedone: 70, pih: 45, mole: 12 };
+    const caps = { nodule: 25, pustule: 80, papule: 80, comedone: 120, pih: 80, mole: 15 };
     let kept = [];
     for (const k of Object.keys(byCls)) kept = kept.concat(nms(byCls[k]).slice(0, caps[k] || 40));
     kept.forEach(o => {
@@ -1216,7 +1241,7 @@ function drawOverlay(angle, lesions, oval) {
     x.save(); x.strokeStyle = "rgba(56,189,248,.65)"; x.lineWidth = 2; x.setLineDash([7, 5]);
     x.beginPath(); oval.forEach((p, i) => i ? x.lineTo(p.x, p.y) : x.moveTo(p.x, p.y)); x.closePath(); x.stroke(); x.restore();
   }
-  lesions.slice(0, 90).forEach((l, idx) => {
+  lesions.slice(0, 150).forEach((l, idx) => {
     const [a, b2, c2, d2] = l.bbox;
     x.strokeStyle = CLASS_COLOR[l.class] || "#fff"; x.lineWidth = 2.4;
     x.strokeRect(a, b2, c2 - a + 1, d2 - b2 + 1);
@@ -1343,9 +1368,13 @@ function aggregate(results) {
   const roiVisN = {};
   Object.keys(ROI_VI).forEach(k => { roiVisN[k] = usable.filter(r => visMap[r.angle][k]).length; });
   const kept = [], droppedCross = [];
+  // đối chứng 2 lớp: (1) cùng vị trí giải phẫu ở góc khác (chặt), (2) cùng vùng + cùng nhóm ở góc khác (rộng).
+  // Bóng đèn không tái hiện ở góc khác nên vẫn bị loại; nốt thật lệch vị trí do xoay mặt thì qua được lớp 2.
+  const regionSupport = (l, all) => all.some(o => o !== l && o.angle !== l.angle && o.roi === l.roi &&
+    (o.grp === l.grp || (o.grp === "INF" && l.grp === "INF")));
   all.forEach(l => {
     if (roiVisN[l.roi] >= 2) {
-      if (crossViewSupport(l, all)) kept.push({ ...l, xview: true });
+      if (crossViewSupport(l, all) || regionSupport(l, all)) kept.push({ ...l, xview: true });
       else droppedCross.push(l);
     } else kept.push({ ...l, xview: false }); // chỉ hiện ở 1 góc -> giữ nhưng ghi "chưa đối chứng"
   });
@@ -1360,7 +1389,7 @@ function aggregate(results) {
   const skinTotal = usable.reduce((s, r) => s + (r.skinFace || r.masksSkinFace || 0), 0) || results.reduce((s, r) => s + (r.facePx || 0), 0) || 1;
   const lesPx = kept.reduce((s, l) => s + l.area, 0);
   const coverage = +(lesPx / skinTotal * 100).toFixed(1); // % trên DA mặt (không tính nền)
-  // GAGS face-only (Doshi 1997, không gồm ngực/lưng -> max 32): grade = tổn thương nặng nhất mỗi vùng
+  // GAGS face-only (Doshi 1997, không gồm ngực/lưng -> max 28): grade = tổn thương nặng nhất mỗi vùng
   const gradeOf = (Les) => {
     const c = Les.map(l => l.class);
     if (c.includes("nodule")) return 4;
@@ -1369,8 +1398,8 @@ function aggregate(results) {
     if (c.includes("comedone")) return 1;
     return 0;
   };
-  const factors = KB?.gags_reference?.factors || { forehead: 2, right_cheek: 2, left_cheek: 2, nose: 1, chin: 1 };
-  const roiNames = ["forehead", "left_cheek", "right_cheek", "nose", "chin"]; // temples báo riêng, không vào GAGS chuẩn
+  const factors = KB?.gags_reference?.factors || { forehead: 2, right_cheek: 2, left_cheek: 2, chin: 1 };
+  const roiNames = ["forehead", "left_cheek", "right_cheek", "chin"]; // mũi + thái dương + quanh miệng không vào GAGS chuẩn
   let gags = 0; const gagsDetail = {};
   roiNames.forEach(rn => {
     const Les = kept.filter(l => l.roi === rn);
@@ -1399,7 +1428,7 @@ function aggregate(results) {
   if (softQ.length) reasons.push(`Lưu ý chất lượng ảnh (${softQ.map(r => r.angle).join(", ")}) — kết quả mang tính tham khảo, chụp lại rõ hơn để chắc chắn`);
   const cond = triage === "RED" && molesSusp.length ? "Tổn thương sắc tố cần theo dõi (ABCDE) & Đỏ da/Viêm da"
     : triage === "RED" ? "Đỏ da/Viêm da tiếp xúc (cần loại trừ)"
-    : gags >= 31 ? "Acne Vulgaris (Nặng) & PIH" : gags >= 19 ? "Acne Vulgaris (Trung bình) & PIH" : "Acne Vulgaris (Nhẹ) & PIH";
+    : gags >= 19 ? "Acne Vulgaris (Trung bình) & PIH" : "Acne Vulgaris (Nhẹ) & PIH";
   const slug = triage === "RED" && molesSusp.length ? "not-ruoi-sac-to-bat-thuong"
     : triage === "RED" ? "viem-da-do-da-mao-mach" : gags >= 19 ? "mun-trung-ca-seo" : "mun-an-duoi-da-mun-dau-den";
   // regional_breakdown theo 3 card góc
@@ -1525,7 +1554,40 @@ function renderZooms(kept) {
     box.appendChild(cell);
   });
 }
-// ---------- biểu đồ: tròn tỉ lệ + cột từng vùng + list từng nốt ----------
+// Điểm da THEO TỪNG NGƯỜI (0-10): đường cong bão hòa sat(n,k)=10*n/(n+k) —
+// càng nhiều nốt điểm càng cao nhưng chững lại, không vọt vô lý. avg = mức tham khảo chung.
+function lesionScores(kept, maxEry) {
+  const sat = (n, k) => Math.min(10, Math.round(10 * n / (n + k)));
+  const c = cls => kept.filter(l => l.class === cls).length;
+  const inf = c("pustule") + c("papule") + c("nodule") * 2;
+  const moles = kept.filter(l => l.class === "mole");
+  const susp = moles.filter(l => l.flags && l.flags.suspicious).length;
+  const defs = [
+    { key: "vien", label: "Mụn viêm (đỏ/mủ)", value: sat(inf, 8), avg: 4 },
+    { key: "tham", label: "Thâm sau mụn", value: sat(c("pih"), 10), avg: 5 },
+    { key: "nhan", label: "Nhân mụn (đầu đen/trắng)", value: sat(c("comedone"), 12), avg: 4 },
+    { key: "do", label: "Đỏ da", value: Math.min(10, Math.round((maxEry || 0) / 3)), avg: 3 },
+    { key: "sac", label: "Nốt sắc tố", value: Math.min(10, moles.length * 2 + susp * 2), avg: 2 },
+  ];
+  return defs.map(d => ({
+    ...d,
+    verdict: d.value <= 3 ? ["Tốt", "lvl-ok"] : (d.value <= 6 ? ["Bình thường", "lvl-mid"] : ["Cần chú ý", "lvl-bad"])
+  }));
+}
+function renderScores(agg) {
+  const box = el("scoreBars"); if (!box) return;
+  const scores = lesionScores(agg.kept, agg.maxEry);
+  box.innerHTML = scores.map(s => `
+    <div class="score">
+      <div class="shead"><span>${s.label}: <span class="${s.verdict[1]}">${s.verdict[0]} (Mức ${s.value}/10)</span></span></div>
+      <div class="strack">
+        <div class="smark" style="left:${s.value * 10}%">Điểm của bạn<br/>${s.value}/10</div>
+        <div class="savg" style="left:${s.avg * 10}%" title="Mức tham khảo chung"></div>
+      </div>
+      <div class="sscale"><span>0</span><span>Điểm tham khảo: ${s.avg}</span><span>10</span></div>
+    </div>`).join("");
+}
+// ---------- biểu đồ: tròn tỉ lệ + list từng nốt ----------
 function drawDoughnut(parts) {
   const c = el("pieChart"); if (!c) return;
   const x = c.getContext("2d"), W = c.width, H = c.height, cx = W / 2, cy = H / 2;
@@ -1595,13 +1657,6 @@ function renderAll(results, agg) {
     const bT = r.blur_pass ? "đạt" : (r.blur_marginal ? "hơi mờ" : "mờ");
     setStat(r.angle, `góc quay mặt ${yawT} • độ nét ${r.blur} (${bT}) • sáng da ${r.light.mean.toFixed(0)} • nhận diện da ${r.skinRatio}%`);
   });
-  // QC
-  document.getElementById("qc").innerHTML = results.map(r => `
-    <div class="pill"><b>${r.angle}</b> <span class="badge ${r.qv.level === "PASS" ? "bGREEN" : "bYELLOW"}">${r.qv.level === "PASS" ? "Ảnh tốt" : "Ảnh tạm"}</span><br/>
-    góc quay mặt (yaw) <span class="${r.angle_valid == null ? "" : (r.angle_valid ? "pass" : "fail")}">${r.yawEst == null ? "? (AI không thấy rõ mặt)" : r.yawEst + "° " + (r.angle_valid ? "✓" : "✗ sai góc")}</span><br/>
-    độ nét vùng mặt <span class="${r.blur_pass ? "pass" : ""}">${r.blur} ${r.blur_pass ? "đạt" : "(hơi mờ)"}</span> •
-    sáng da <span class="${r.lighting_valid ? "pass" : "fail"}">${r.light.mean.toFixed(0)}</span> •
-    bóng đổ ${r.illum ? r.illum.shadowPct + "%" : "?"}<br/><span>${r.guidance}</span></div>`).join("");
   const frontalOk = results.find(r => r.angle === "frontal");
   const rejected = false;
   const status = "SUCCESS";
@@ -1609,10 +1664,11 @@ function renderAll(results, agg) {
   document.getElementById("kPrimary").textContent = agg.cond;
   const ks = document.getElementById("kSim");
   if (ks) ks.textContent = agg.vecMatch.best ? `So khớp đặc điểm (vector) với kho bệnh mẫu: giống “${agg.vecMatch.best.label}” ${Math.round(agg.vecMatch.best.sim * 100)}%` : "";
-  document.getElementById("kGags").textContent = agg.gags + (agg.gags >= 31 ? " (nặng)" : agg.gags >= 19 ? " (TB)" : " (nhẹ)");
+  document.getElementById("kGags").textContent = agg.gags + (agg.gags >= 19 ? " (TB)" : (agg.gags >= 8 ? " (nhẹ+)" : " (nhẹ)"));
   document.getElementById("kArea").textContent = agg.coverage + "%";
   document.getElementById("kTriage").innerHTML = `<span class="badge b${agg.triage}">${agg.triage}</span>`;
   renderCharts(results, agg);
+  renderScores(agg);
   renderSevMatrix(results, agg);
   renderZooms(agg.kept);
   setStepBar(3);
@@ -1654,7 +1710,7 @@ function renderAll(results, agg) {
       light_spread: agg.spread
     },
     overall_skin_analysis: {
-      primary_condition: agg.cond, gags_score: agg.gags, gags_scale: "face-only (Doshi 1997, max 32, không gồm ngực/lưng)", gags_detail: agg.gagsDetail,
+      primary_condition: agg.cond, gags_score: agg.gags, gags_scale: "face-only (Doshi 1997, max 28, không gồm ngực/lưng)", gags_detail: agg.gagsDetail,
       affected_coverage_percentage: agg.coverage, coverage_denominator: "facial skin pixels (skin ∩ face oval)",
       triage_level: agg.triage, specialty_slug: agg.slug,
       counts: { inflammatory: agg.pust, comedones: agg.comed, pih: agg.pih, moles_total: agg.moles, moles_suspicious_abcde: agg.molesSusp, max_erythema_pct: agg.maxEry }
@@ -1674,7 +1730,7 @@ function renderAll(results, agg) {
   document.getElementById("mdOut").innerHTML = mdReport(out, agg, results);
 }
 // mã lý do loại -> tiếng Việt đơn giản
-const REASON_VI = { shadow: "bóng đổ", glare: "chói sáng", shape: "hình dạng không giống nốt", boundary: "ranh giới mờ", contrast: "không khác vùng da xung quanh", persist: "mất dấu khi chuẩn hóa ánh sáng", lift: "màu đổi khi nâng sáng (giống bóng)", chroma: "màu không giống tổn thương", noring: "không có da lành xung quanh để so", diffuse: "vùng lan rộng", lowconf: "AI chưa chắc chắn", empty: "rỗng" };
+const REASON_VI = { shadow: "bóng đổ", glare: "chói sáng", eye: "vùng mắt", shape: "hình dạng không giống nốt", boundary: "ranh giới mờ", contrast: "không khác vùng da xung quanh", persist: "mất dấu khi chuẩn hóa ánh sáng", lift: "màu đổi khi nâng sáng (giống bóng)", chroma: "màu không giống tổn thương", noring: "không có da lành xung quanh để so", diffuse: "vùng lan rộng", lowconf: "AI chưa chắc chắn", empty: "rỗng" };
 function mdReport(out, agg, results) {
   const kb = (out.kb_match[0] || {});
   const drops = Object.entries(agg.pipe.dropped).map(([k, v]) => `${REASON_VI[k] || k} ×${v}`).join(", ");
@@ -1763,5 +1819,5 @@ function downloadJSON() {
 }
 // Export pure logic cho self-test node (không ảnh hưởng browser)
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { estimatePose, angleGuidance, skinPixel, nms, iouFn, cosine, lesionProfileVector, classifyRedBlob, isRedAdaptive, isBrownAdaptive, isPusAdaptive, sevOf, qualityStdOf, bookingSummaryText, qualityVerdict, regionEvidence, crossViewSupport, lightSpread, liftPersistCheck, verifyRedCandidate, verifyBrownCandidate, verifyDarkCandidate, verifyMoleCandidate, REASON_VI, EXPECTED_YAW };
+  module.exports = { estimatePose, angleGuidance, skinPixel, nms, iouFn, cosine, lesionProfileVector, classifyRedBlob, isRedAdaptive, isBrownAdaptive, isPusAdaptive, sevOf, qualityStdOf, bookingSummaryText, qualityVerdict, regionEvidence, crossViewSupport, lightSpread, liftPersistCheck, verifyRedCandidate, verifyBrownCandidate, verifyDarkCandidate, verifyMoleCandidate, REASON_VI, lesionScores, EXPECTED_YAW };
 }

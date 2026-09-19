@@ -12,7 +12,6 @@
 </head>
 <body>
 <header class="top">
-  <div class="announce"><span class="pill-new">MỚI</span> SOI DA AI — CHỤP 3 GÓC, CÓ KẾT QUẢ NGAY <a href="/dat-lich">ĐẶT LỊCH KHÁM →</a></div>
   <div class="toprow">
     <a class="brand" href="/">DermaCare <i></i></a>
     <nav class="sitenav">
@@ -106,7 +105,6 @@
     <div id="pipeSteps" class="pipesteps">
       <span class="pstep" data-i="0">1. Kiểm tra ảnh</span><span class="pstep" data-i="1">2. Nhận diện mặt</span><span class="pstep" data-i="2">3. Kiểm tra ánh sáng</span><span class="pstep" data-i="3">4. Loại bóng</span><span class="pstep" data-i="4">5. Phân vùng</span><span class="pstep" data-i="5">6. Tìm nốt</span><span class="pstep" data-i="6">7. Lọc nhiễu</span><span class="pstep" data-i="7">8. Chấm tin cậy</span><span class="pstep" data-i="8">9. Biểu đồ</span>
     </div>
-    <div id="blurWarn"></div>
     <div id="triageBanner"></div>
     <div class="sumgrid">
       <div class="sum"><small>Tình trạng (bệnh da chính AI nhận thấy)</small><b id="kPrimary">—</b><em id="kSim"></em></div>
@@ -122,6 +120,10 @@
       <div class="rescard"><h3>Chính diện <span id="st-frontal"></span></h3><div class="imgwrap"><canvas id="rv-frontal" width="480" height="360"></canvas></div><p id="cap-frontal" class="cap">—</p></div>
       <div class="rescard"><h3>Má Phải <span id="st-right_cheek"></span></h3><div class="imgwrap"><canvas id="rv-right_cheek" width="480" height="360"></canvas></div><p id="cap-right_cheek" class="cap">—</p></div>
     </div>
+
+    <h3 style="margin:14px 0 4px">📊 Điểm da của bạn (tính riêng từng người)</h3>
+    <p class="hint">Thang 0–10 theo số nốt <b>bạn</b> đang có (càng cao càng cần chú ý). Vạch xám là mức tham khảo chung.</p>
+    <div id="scoreBars"></div>
 
     <h3 style="margin:14px 0 4px">🧾 Bằng chứng từng vùng</h3>
     <p class="hint"><b>Không phát hiện ≠ 0% do AI đoán.</b> Không phát hiện = chưa tìm thấy bằng chứng đủ mạnh để xác nhận tổn thương. Vùng khuất hoặc ảnh kém ghi rõ “Không đủ bằng chứng”.</p>
@@ -149,7 +151,6 @@
       <button class="ghost" onclick="downloadJSON()">⬇ Tải kết quả</button>
       <button class="primary" onclick="openBooking()">📅 Đặt lịch & gửi báo cáo cho bác sĩ</button>
     </div>
-    <div id="qc" class="qc"></div>
   </section>
 
   <div style="display:none" aria-hidden="true">
@@ -161,19 +162,35 @@
 
 <div id="gpop" class="gpop"><span class="x" onclick="document.getElementById('gpop').style.display='none'">✕</span><div id="gpopBody"></div></div>
 <div id="bookModal" class="modal">
-  <div class="mbox">
-    <h3>📅 Đặt lịch & gửi hồ sơ cho bác sĩ</h3>
-    <p class="note">Hồ sơ gồm: <b>3 ảnh chụp</b> + kết quả phân tích + biểu đồ + mức độ từng vùng. File tải về máy bạn — bạn tự gửi cho phòng khám (Zalo/email) hoặc mang theo khi đi khám để bác sĩ có góc nhìn đầy đủ hơn.</p>
-    <label>Họ tên <input id="bkName" placeholder="VD: Nguyễn Văn A"/></label>
-    <label>Số điện thoại <input id="bkPhone" placeholder="VD: 09xx xxx xxx"/></label>
-    <label>Ngày mong muốn khám <input id="bkDate" type="date"/></label>
-    <label>Ghi chú thêm <input id="bkNote" placeholder="VD: mụn nặng lên 2 tuần nay, đang dùng BHA"/></label>
-    <div class="row">
-      <button class="primary" onclick="buildBooking()">Tạo hồ sơ & tải về</button>
-      <button class="ghost" onclick="closeBooking()">Đóng</button>
+  <div class="mbox full">
+    <button class="mx" onclick="closeBooking()" aria-label="Đóng">✕</button>
+    <div class="mhead">
+      <div>
+        <div class="mtitle">📅 Đặt lịch khám da liễu</div>
+        <div class="msub">Hồ sơ gồm 3 ảnh chụp + kết quả AI — gửi phòng khám qua Zalo/email hoặc mang theo khi đi khám</div>
+      </div>
+      <span class="badge bGREEN">Miễn phí tạo hồ sơ</span>
     </div>
-    <label>Tóm tắt để copy gửi bác sĩ <textarea id="bookSummary" rows="9" readonly></textarea></label>
-    <div class="row"><button class="ghost" onclick="copyBooking()">📋 Sao chép tóm tắt</button></div>
+    <div class="mgrid">
+      <div class="mform">
+        <h4>1. Thông tin của bạn</h4>
+        <label>Họ tên <input id="bkName" placeholder="VD: Nguyễn Văn A"/></label>
+        <label>Số điện thoại <input id="bkPhone" placeholder="VD: 09xx xxx xxx"/></label>
+        <label>Ngày mong muốn khám <input id="bkDate" type="date"/></label>
+        <label>Ghi chú thêm <input id="bkNote" placeholder="VD: mụn nặng lên 2 tuần nay, đang dùng BHA"/></label>
+        <h4>2. Lấy hồ sơ</h4>
+        <div class="row">
+          <button class="primary big" onclick="buildBooking()">⬇ Tạo hồ sơ & tải về</button>
+          <button class="ghost" onclick="copyBooking()">📋 Sao chép tóm tắt</button>
+        </div>
+        <p class="note">File <b>ho-so-soi-da.html</b> mở được trên mọi máy, có sẵn ảnh + kết quả để bác sĩ xem.</p>
+      </div>
+      <div class="mside">
+        <h4>Tóm tắt gửi bác sĩ</h4>
+        <textarea id="bookSummary" rows="14" readonly placeholder="Bấm “Tạo hồ sơ” — tóm tắt hiện ở đây để copy"></textarea>
+        <div id="bookResult"></div>
+      </div>
+    </div>
   </div>
 </div>
 <video id="camVideo" autoplay playsinline muted style="display:none"></video>
