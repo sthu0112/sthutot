@@ -1,0 +1,122 @@
+{
+  "version": "1.0.0",
+  "source": "DermaCare Medical Ground Truth (ICD-10/ICD-11 mapped, demo)",
+  "disclaimer": "AI hỗ trợ, không thay thế chẩn đoán bác sĩ. KHÔNG kê kháng sinh toàn thân (Doxycycline, Isotretinoin) hay Corticoid mạnh qua AI tự động.",
+  "conditions": [
+    {
+      "id": "acne-comedonal-mild",
+      "label_vi": "Mụn trứng cá nhẹ (chủ yếu mụn đầu đen/đầu trắng)",
+      "label_en": "Acne Vulgaris, mild comedonal",
+      "icd10": "L70.0",
+      "icd11": "ED80.0",
+      "specialty_slug": "mun-an-duoi-da-mun-dau-den",
+      "keywords": ["comedone", "blackhead", "whitehead", "mun dau den", "mun an"],
+      "triage": "GREEN",
+      "gags_hint": "1-18",
+      "guidance_vi": "Làm sạch dịu nhẹ 2 lần/ngày, BHA/AHA nồng độ thấp, dưỡng ẩm non-comedogenic, chống nắng. Theo dõi 4-8 tuần."
+    },
+    {
+      "id": "acne-papulopustular-moderate",
+      "label_vi": "Mụn trứng cá mức độ trung bình (sẩn viêm, mụn mủ)",
+      "label_en": "Acne Vulgaris, moderate papulopustular",
+      "icd10": "L70.0",
+      "icd11": "ED80.0",
+      "specialty_slug": "mun-trung-ca-seo",
+      "keywords": ["pustule", "papule", "mun viem", "mun mu", "san mu"],
+      "triage": "YELLOW",
+      "gags_hint": "19-30",
+      "guidance_vi": "Nên khám Da liễu. Bác sĩ có thể cân nhắc retinoid tại chỗ / benzoyl peroxide / kháng sinh tại chỗ. Không tự nặn mụn viêm, không tự dùng kháng sinh uống."
+    },
+    {
+      "id": "acne-severe-nodular",
+      "label_vi": "Mụn trứng cá nặng (cục, nang, nguy cơ sẹo)",
+      "label_en": "Acne Vulgaris, severe nodulocystic",
+      "icd10": "L70.1",
+      "icd11": "ED80.1",
+      "specialty_slug": "mun-boc-mun-nang-seo-ro",
+      "keywords": ["nodule", "cyst", "mun boc", "mun nang"],
+      "triage": "YELLOW",
+      "gags_hint": "31+",
+      "guidance_vi": "Khuyến nghị khám Da liễu sớm để hạn chế sẹo rỗ. Chỉ bác sĩ mới được chỉ định Isotretinoin/kháng sinh toàn thân sau thăm khám trực tiếp."
+    },
+    {
+      "id": "pih",
+      "label_vi": "Thâm sau mụn / Tăng sắc tố sau viêm (PIH)",
+      "label_en": "Post-inflammatory hyperpigmentation",
+      "icd10": "L81.0",
+      "icd11": "ED60.0",
+      "specialty_slug": "tham-mun-tang-sac-to",
+      "keywords": ["pih", "tham", "hyperpigmentation", "tang sac to"],
+      "triage": "GREEN",
+      "gags_hint": "-",
+      "guidance_vi": "Chống nắng nghiêm ngặt (SPF 30+, bôi lại), vitamin C / niacinamide / azelaic acid theo hướng dẫn. PIH mờ dần trong nhiều tuần-tháng."
+    },
+    {
+      "id": "atrophic-scar",
+      "label_vi": "Sẹo rỗ teo (icepick / rolling / boxcar)",
+      "label_en": "Atrophic acne scars",
+      "icd10": "L90.5",
+      "icd11": "EE40.0",
+      "specialty_slug": "seo-ro-seo-lom",
+      "keywords": ["scar", "seo ro", "icepick", "boxcar", "rolling"],
+      "triage": "YELLOW",
+      "gags_hint": "-",
+      "guidance_vi": "Sẹo rỗ cần can thiệp tại cơ sở Da liễu (lăn kim, laser, TCA CROSS... do bác sĩ chỉ định). Skincare tại nhà không làm đầy sẹo rỗ."
+    },
+    {
+      "id": "erythema-dermatitis",
+      "label_vi": "Đỏ da / Viêm da tiếp xúc / Giãn mao mạch / Nghi rosacea - viêm da do corticoid",
+      "label_en": "Erythema / Contact dermatitis / Rosacea-like",
+      "icd10": "L25.9",
+      "icd11": "EK00",
+      "specialty_slug": "viem-da-do-da-mao-mach",
+      "keywords": ["erythema", "redness", "dermatitis", "do da", "viem da", "gian mao mach", "demodex", "nam"],
+      "triage": "RED",
+      "gags_hint": "-",
+      "guidance_vi": "Ngưng mỹ phẩm nghi ngờ, không dùng corticoid tự ý. Nếu đỏ rát lan rộng, bong vảy, chảy dịch, rát bỏng hoặc kèm sốt -> đi khám GẤP. Cần loại trừ viêm da do corticoid / nhiễm nấm / Demodex tại cơ sở y tế."
+    },
+    {
+      "id": "suspicious-pigmented",
+      "label_vi": "Tổn thương sắc tố bất thường (theo dõi quy tắc ABCDE)",
+      "label_en": "Atypical pigmented lesion, ABCDE watch",
+      "icd10": "D22.9",
+      "icd11": "2F20.Z",
+      "specialty_slug": "not-ruoi-sac-to-bat-thuong",
+      "keywords": ["mole", "not ruoi", "abcde", "sac to", "melanocytic"],
+      "triage": "RED",
+      "gags_hint": "-",
+      "guidance_vi": "Mô tả hình ảnh có dấu hiệu tương đồng với tổn thương sắc tố cần theo dõi (không khẳng định ung thư da). Cần khám Da liễu / soi da (dermoscopy) trực tiếp càng sớm càng tốt. Tự theo dõi ABCDE: Bất đối xứng, Bờ, Màu sắc, Đường kính, Tiến triển."
+    }
+  ],
+  "triage_rules": {
+    "GREEN": {
+      "label": "GREEN - Nhẹ, chăm sóc tại nhà + theo dõi",
+      "criteria": "Chủ yếu comedones / PIH nhẹ, GAGS < 19, diện tích tổn thương < 8%, không có dấu hiệu RED",
+      "action": "Hướng dẫn skincare tại nhà, tái đánh giá sau 4-8 tuần. Đến khám nếu nặng lên."
+    },
+    "YELLOW": {
+      "label": "YELLOW - Trung bình/nặng, nên khám Da liễu",
+      "criteria": "Nhiều sẩn/mủ, GAGS 19-30+, sẹo rỗ lan rộng, hoặc PIH đậm diện rộng",
+      "action": "Khuyến nghị đặt lịch khám Da liễu trong 1-2 tuần. Không tự kê kháng sinh/Isotretinoin."
+    },
+    "RED": {
+      "label": "RED - Cảnh báo, khám gấp / nhập viện",
+      "criteria": "Đỏ da diện rộng + bong vảy/chảy dịch/mủ, nghi viêm da corticoid, nốt ruồi vi phạm ABCDE, kèm sốt/đau nhiều",
+      "action": "Cảnh báo khám Da liễu GẤP hoặc cơ sở y tế gần nhất. Ngưng sản phẩm nghi ngờ."
+    }
+  },
+  "profile_prototypes": [
+    { "id": "acne-comedonal-mild", "label_vi": "Mụn nhẹ (nhân mụn)", "vec": [0.15, 0.75, 0.4, 0.15, 0] },
+    { "id": "acne-papulopustular-moderate", "label_vi": "Mụn viêm trung bình", "vec": [0.6, 0.45, 0.45, 0.4, 0] },
+    { "id": "acne-severe-nodular", "label_vi": "Mụn bọc/nang nặng", "vec": [0.85, 0.3, 0.4, 0.45, 0] },
+    { "id": "pih", "label_vi": "Thâm sau mụn (PIH)", "vec": [0.1, 0.3, 0.85, 0.15, 0] },
+    { "id": "erythema-dermatitis", "label_vi": "Đỏ da/Viêm da", "vec": [0.25, 0.05, 0.1, 0.9, 0] },
+    { "id": "suspicious-pigmented", "label_vi": "Nốt sắc tố cần theo dõi", "vec": [0.05, 0.05, 0.3, 0.05, 0.9] }
+  ],
+  "gags_reference": {
+    "note": "Chuẩn Doshi 1997 (Int J Dermatol): 6 vùng gồm ngực/lưng (factor 3). App chỉ chụp mặt -> face-only, max 32, temples báo riêng không vào GAGS. Bands giữ nguyên.",
+    "factors": { "forehead": 2, "right_cheek": 2, "left_cheek": 2, "nose": 1, "chin": 1 },
+    "grades": { "0": "Không tổn thương", "1": "≥1 comedone", "2": "≥1 sẩn (papule)", "3": "≥1 mụn mủ (pustule)", "4": "≥1 cục/nang (nodule/cyst)" },
+    "bands": { "mild": "1-18", "moderate": "19-30", "severe": "31-38", "very_severe": ">39" }
+  }
+}

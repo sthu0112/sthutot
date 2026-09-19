@@ -1,5 +1,5 @@
 import { NavLink, Link } from 'react-router-dom'
-import { LayoutDashboard, Users, UserPlus, ClipboardList, Images, Search, BarChart3, Settings, LogOut, X, Calendar, ShieldCheck, Stethoscope } from 'lucide-react'
+import { LayoutDashboard, Users, UserPlus, ClipboardList, Images, Search, BarChart3, Settings, LogOut, X, Calendar, ShieldCheck, Stethoscope, ScanFace } from 'lucide-react'
 import { useAuth, homeByRole } from '../contexts/AuthContext'
 
 const nav = [
@@ -43,6 +43,9 @@ export default function Sidebar({ collapsed=false, onClose }) {
               </NavLink>
             )
           })}
+          <a href="/soi-da/index.html" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition bg-lime text-forest hover:opacity-80">
+            <ScanFace size={18} /> Soi da AI
+          </a>
         </nav>
       </div>
 

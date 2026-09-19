@@ -93,6 +93,7 @@ export default function Landing() {
             <a href="#tinh-nang" className="hover:opacity-70">Tính năng</a>
             <a href="#faq" className="hover:opacity-70">Hỏi đáp</a>
             <Link to="/dat-lich" className="hover:opacity-70">Đặt lịch</Link>
+            <a href="/soi-da/index.html" className="hover:opacity-70">Soi da</a>
             <Link to="/tro-ly-ai" className="hover:opacity-70">Hỏi AI</Link>
             <Link to="/cam-nang" className="hover:opacity-70">Cẩm nang</Link>
           </nav>
@@ -149,6 +150,7 @@ export default function Landing() {
                   Đặt lịch khám <ArrowRight size={16} strokeWidth={1.5} />
                 </Link>
                 <Link to="/login" onClick={() => playClick('tap')} className="inline-flex items-center gap-2 px-6 py-4 rounded-pill bg-snow border-[1.5px] border-forest text-forest text-[16px] font-sans hover:opacity-80">Xem demo</Link>
+                <a href="/soi-da/index.html" onClick={() => playClick('tap')} className="inline-flex items-center gap-2 px-6 py-4 rounded-pill bg-lime text-forest text-[16px] font-sans hover:opacity-80">Soi da AI</a>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -497,7 +499,7 @@ export default function Landing() {
 
           <div className="border-t border-snow/15 mt-6 pt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { h: 'Khám bệnh', links: [['Đặt lịch khám', '/dat-lich'], ['Hỏi AI trước khi đặt', '/tro-ly-ai'], ['Cẩm nang da', '/cam-nang'], ['Lịch của tôi', '/benh-nhan']] },
+              { h: 'Khám bệnh', links: [['Đặt lịch khám', '/dat-lich'], ['Soi da AI', '/soi-da/index.html'], ['Hỏi AI trước khi đặt', '/tro-ly-ai'], ['Cẩm nang da', '/cam-nang'], ['Lịch của tôi', '/benh-nhan']] },
               { h: 'Tài liệu', links: [['Tổng quan', '#tong-quan'], ['Chuyên khoa', '#chuyen-khoa'], ['Độ tuổi', '#do-tuoi'], ['Hỏi đáp', '#faq']] },
               { h: 'Tài khoản', links: [['Đăng nhập', '/login'], ['Đăng ký', '/register'], ['Trang bác sĩ', '/bac-si']] },
               { h: 'Liên hệ', links: [['Hotline: 1900 6368', 'tel:19006368'], ['Về trang chủ', '/'], ['Đặt lịch khám', '/dat-lich']] },
@@ -516,6 +518,8 @@ export default function Landing() {
                       {to.startsWith('#') ? (
                         <a href={to} className="opacity-70 hover:opacity-100">{label}</a>
                       ) : to.startsWith('tel:') ? (
+                        <a href={to} className="opacity-70 hover:opacity-100">{label}</a>
+                      ) : to.startsWith('/soi-da') ? (
                         <a href={to} className="opacity-70 hover:opacity-100">{label}</a>
                       ) : (
                         <Link to={to} className="opacity-70 hover:opacity-100">{label}</Link>
