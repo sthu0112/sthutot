@@ -11,10 +11,16 @@ export const FOODS = [
   { key: 'viet-quat', ten: 'Việt quất, quả mọng', img: IMG('viet-quat'), nen: true, viSao: 'Anthocyanin + vitamin C giúp da đều màu, chậm lão hóa.', nguon: 'AAD' },
   { key: 'hat-bi', ten: 'Hạt bí, hạt hướng dương', img: IMG('hat-bi'), nen: true, viSao: 'Kẽm và vitamin E hỗ trợ kiểm soát dầu và lành da. Ăn một nắm nhỏ mỗi ngày.', nguon: 'NHS · WHO' },
   { key: 'trung', ten: 'Trứng', img: IMG('trung'), nen: true, viSao: 'Đạm, biotin, vitamin D tốt cho da và tóc. Ăn điều độ mỗi ngày.', nguon: 'WHO · NHS' },
+  { key: 'sua-chua', ten: 'Sữa chua không đường', img: IMG('sua-chua'), nen: true, viSao: 'Lợi khuẩn hỗ trợ tiêu hóa, da bớt xỉn khi bụng khỏe. Chọn loại ít đường.', nguon: 'WHO · Mayo Clinic' },
+  { key: 'khoai-lang', ten: 'Khoai lang', img: IMG('khoai-lang'), nen: true, viSao: 'Beta-carotene (tiền vitamin A), chất xơ, no lâu mà ít tăng đường huyết.', nguon: 'WHO · NHS' },
+  { key: 'bo', ten: 'Quả bơ', img: IMG('bo'), nen: true, viSao: 'Chất béo tốt + vitamin E dưỡng ẩm da từ bên trong. Ăn nửa quả mỗi ngày là đủ.', nguon: 'AAD · WHO' },
+  { key: 'cam', ten: 'Cam, quýt', img: IMG('cam'), nen: true, viSao: 'Vitamin C dồi dào giúp da đều màu, tăng đề kháng da. Ăn cả múi tốt hơn uống nước ép bỏ bã.', nguon: 'WHO · NHS' },
   { key: 'ga-ran', ten: 'Gà rán, đồ chiên nhiều dầu', img: IMG('ga-ran'), nen: false, viSao: 'Nhiều dầu mỡ, dễ bùng mụn và tăng phản ứng viêm. Ăn chơi thỉnh thoảng, đừng thành bữa chính.', nguon: 'AAD · Mayo Clinic' },
   { key: 'nuoc-ngot', ten: 'Nước ngọt có ga', img: IMG('nuoc-ngot'), nen: false, viSao: 'Đường rất cao — nghiên cứu quan sát thấy liên quan mụn nặng hơn. Đổi sang trà xanh/trà thảo mộc không đường.', nguon: 'AAD · WHO' },
   { key: 'bia-ruou', ten: 'Rượu, bia', img: IMG('bia-ruou'), nen: false, viSao: 'Giãn mạch gây đỏ mặt, mất nước, dễ bùng viêm và rosacea. Da đang viêm thì nên kiêng hẳn.', nguon: 'NHS · AAD' },
   { key: 'banh-keo', ten: 'Bánh kẹo ngọt', img: IMG('banh-keo'), nen: false, viSao: 'Đường huyết cao làm da lão hóa nhanh và mụn khó lành. Thèm ngọt thì ăn trái cây tươi.', nguon: 'WHO · AAD' },
+  { key: 'mi-tom', ten: 'Mì tôm ăn liền', img: IMG('mi-tom'), nen: false, viSao: 'Nhiều muối, dầu chiên và phụ gia — ăn thường xuyên dễ nổi mụn, da sạm. Ăn thì thêm rau, trứng và bớt gói dầu.', nguon: 'WHO' },
+  { key: 'xuc-xich', ten: 'Xúc xích, thịt chế biến sẵn', img: IMG('xuc-xich'), nen: false, viSao: 'Nhiều muối, chất bảo quản và mỡ bão hòa, liên quan viêm và lão hóa da. Ăn ít, chọn loại uy tín.', nguon: 'WHO · NHS' },
 ]
 
 export const NATURALS = [
@@ -73,5 +79,26 @@ export const NATURALS = [
     hieuQua: 'Mắt đỡ sưng sau 10 phút đắp lạnh. Hiệu quả tức thì, ngắn hạn.',
     cachLam: ['Rửa sạch, thái lát mỏng, ướp lạnh 15 phút.', 'Đắp lên mắt/ vùng cần dịu 10 phút.', 'Rửa lại nước mát. Dao thớt phải sạch.'],
     luuY: 'Chỉ là biện pháp làm mát tạm thời, không thay kem mắt hay điều trị.',
+  },
+  {
+    key: 'tia-to', ten: 'Lá tía tô xông mặt', img: IMG('tia-to'),
+    congDung: 'Xông hơi ấm giúp giãn lỗ chân lông, dịu cảm giác ngạt mũi kèm theo.',
+    hieuQua: 'Da thoáng, mềm sau mỗi lần xông. Chỉ hỗ trợ làm sạch, không trị mụn.',
+    cachLam: ['Rửa sạch 1 nắm lá tía tô, đun với 1 lít nước + chút muối 5 phút.', 'Trùm khăn xông mặt 7-10 phút, cách mặt 25-30cm.', 'Rửa lại nước mát, dưỡng ẩm nhẹ. 1 lần/tuần, không xông khi đang viêm nặng.'],
+    luuY: 'Nước quá nóng gây bỏng, giãn mạch. Da mụn viêm nặng, rosacea thì bỏ qua.',
+  },
+  {
+    key: 'muop-dang', ten: 'Mướp đắng (khổ qua)', img: IMG('muop-dang'),
+    congDung: 'Ăn thanh nhiệt; đắp ngoài hỗ trợ da dầu mụn nhẹ (dân gian).',
+    hieuQua: 'Ăn đều giúp mát người; đắp ngoài hiệu quả chậm, chỉ hợp da khỏe.',
+    cachLam: ['Ăn: luộc/xào 2-3 bữa/tuần, không ăn quá nhiều khi bụng yếu.', 'Đắp: xay 1/4 quả với ít nước, lọc lấy nước thoa vùng da dầu 10 phút rồi rửa.', 'Thử trước ở cằm vì mướp đắng có thể gây châm chích.'],
+    luuY: 'Chỉ dùng ngoài khi da không viêm nặng, không vết hở. Ngưng nếu rát đỏ.',
+  },
+  {
+    key: 'nuoc-vo-gao', ten: 'Nước vo gạo rửa mặt', img: IMG('nuoc-vo-gao'),
+    congDung: 'Rửa mặt dịu nhẹ, hỗ trợ da sáng dần (dân gian nhiều người dùng).',
+    hieuQua: 'Da mềm, sạch nhẹ sau mỗi lần rửa. Không trắng cấp tốc.',
+    cachLam: ['Vo gạo lần 2, lấy nước để lắng 30 phút, gạn phần nước trong phía trên.', 'Dùng rửa mặt buổi tối thay sữa rửa mặt 2-3 lần/tuần.', 'Nước để quá 1 ngày thì bỏ, làm mẻ mới. Da mụn viêm nặng nên dùng sữa rửa mặt y khoa.'],
+    luuY: 'Nước vo gạo để lâu dễ nhiễm khuẩn — chỉ dùng trong ngày.',
   },
 ]

@@ -14,6 +14,7 @@ function FeatureCard({ icon: Icon, title, desc, delay = 0, href = null, cta = nu
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5 }}
+      whileTap={{ scale: 0.97 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
       className="bg-stone rounded-2xl p-6 h-full hover:shadow-card transition-shadow"
@@ -509,6 +510,42 @@ export default function Landing() {
                 </motion.div>
               )
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* DINH DƯỠNG & THIÊN NHIÊN — 2 lối vào có ảnh */}
+      <section className="w-full scroll-mt-20">
+        <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-16 md:py-24">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="font-sans text-[12px] uppercase tracking-wide text-pewter font-medium">Ăn gì · Đắp gì</div>
+            <h2 className="font-sans font-semibold text-[32px] md:text-[36px] leading-[1.1] tracking-tight mt-3">Chăm da từ mâm cơm &amp; thiên nhiên</h2>
+            <p className="font-sans text-[15px] text-pewter mt-2">Món ăn nên/hạn chế + liệu pháp tự làm tại nhà, ảnh thật từng món.</p>
+          </motion.div>
+          <div className="grid md:grid-cols-2 gap-4 mt-10">
+            {[
+              { img: '/img/rau-xanh.jpg', tag: '18 món ăn', t: 'Dinh dưỡng cho da', d: 'Nên ăn gì, hạn chế gì và vì sao — có ảnh từng món.', to: '/cham-soc-tu-nhien' },
+              { img: '/img/nha-dam.jpg', tag: '11 liệu pháp', t: 'Thiên nhiên tự làm', d: 'Công dụng, hiệu quả và từng bước tự làm tại nhà.', to: '/cham-soc-tu-nhien?tab=thien' },
+            ].map((c, i) => (
+              <motion.a
+                key={c.t} href={c.to}
+                initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} whileHover={{ y: -6 }} whileTap={{ scale: 0.98 }}
+                viewport={{ once: true, margin: '-40px' }} transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="group relative rounded-[24px] overflow-hidden block"
+              >
+                <img src={c.img} alt={c.t} loading="lazy" className="w-full h-64 md:h-72 object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,transparent 30%,rgba(28,58,19,.82))' }} />
+                <div className="absolute bottom-0 p-6 text-snow">
+                  <span className="px-2 py-[6px] rounded-pill bg-lime text-forest text-[12px] font-medium">{c.tag}</span>
+                  <div className="font-sans font-semibold text-[22px] mt-2">{c.t}</div>
+                  <div className="font-sans text-[14px] opacity-85 mt-1">{c.d}</div>
+                  <span className="inline-flex items-center gap-1 mt-2 font-sans text-[14px] font-medium underline underline-offset-4">Vào xem <ArrowRight size={14} /></span>
+                </div>
+              </motion.a>
+            ))}
           </div>
         </div>
       </section>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Apple, Leaf, AlertTriangle, CalendarCheck, MessageCircle, Check, X } from 'lucide-react'
 import { FOODS, NATURALS } from '../data/dinhDuong'
@@ -8,7 +8,7 @@ import { playClick } from '../utils/sound'
 function FoodCard({ f, i }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} whileHover={{ y: -5 }}
+      initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} whileHover={{ y: -5 }} whileTap={{ scale: 0.97 }}
       viewport={{ once: true, margin: '-40px' }} transition={{ duration: 0.45, delay: (i % 3) * 0.06 }}
       className="bg-white border border-forest/10 rounded-[24px] overflow-hidden hover:shadow-card transition-shadow"
     >
@@ -30,7 +30,7 @@ function FoodCard({ f, i }) {
 function NaturalCard({ n, i }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} whileHover={{ y: -5 }}
+      initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} whileHover={{ y: -5 }} whileTap={{ scale: 0.97 }}
       viewport={{ once: true, margin: '-40px' }} transition={{ duration: 0.45, delay: (i % 2) * 0.07 }}
       className="bg-white border border-forest/10 rounded-[24px] overflow-hidden hover:shadow-card transition-shadow"
     >
@@ -60,7 +60,8 @@ function NaturalCard({ n, i }) {
 }
 
 export default function ThienNhien() {
-  const [tab, setTab] = useState('an')
+  const [params] = useSearchParams()
+  const [tab, setTab] = useState(params.get('tab') === 'thien' ? 'thien' : 'an')
   const [filter, setFilter] = useState('all')
   const shown = filter === 'all' ? FOODS : FOODS.filter((f) => (filter === 'nen') === f.nen)
 
@@ -83,7 +84,7 @@ export default function ThienNhien() {
             <button
               key={k}
               onClick={() => { playClick('tap'); setTab(k) }}
-              className={`px-6 py-3.5 rounded-pill text-[15px] font-semibold transition ${tab === k ? 'bg-forest text-snow' : 'bg-white border-[1.5px] border-forest text-forest hover:opacity-80'}`}
+              className={`px-6 py-3.5 rounded-pill text-[15px] font-semibold transition active:scale-95 ${tab === k ? 'bg-forest text-snow' : 'bg-white border-[1.5px] border-forest text-forest hover:opacity-80'}`}
             >
               {label}
             </button>
@@ -97,7 +98,7 @@ export default function ThienNhien() {
                 <button
                   key={k}
                   onClick={() => { playClick('tap'); setFilter(k) }}
-                  className={`px-4 py-2 rounded-pill text-[13px] font-medium border whitespace-nowrap ${filter === k ? 'bg-forest text-snow border-forest' : 'bg-snow border-forest/20'}`}
+                  className={`px-4 py-2 rounded-pill text-[13px] font-medium border whitespace-nowrap active:scale-95 transition-transform ${filter === k ? 'bg-forest text-snow border-forest' : 'bg-snow border-forest/20'}`}
                 >
                   {label}
                 </button>
