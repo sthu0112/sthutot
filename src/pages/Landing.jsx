@@ -394,15 +394,21 @@ export default function Landing() {
             transition={{ duration: 0.6 }}
             className="bg-snow rounded-2xl text-forest p-6"
           >
-            <div className="flex items-center gap-2 font-sans font-medium text-[18px] tracking-tight"><Database size={18} strokeWidth={1.5} /> Lược đồ dữ liệu</div>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              {['profiles', 'patients', 'visits', 'patient_images', 'attachments', 'audit_logs'].map((t) => (
-                <div key={t} className="rounded-lg bg-stone px-3 py-2.5 font-mono font-light text-[12px]">{t}</div>
+            <div className="flex items-center gap-2 font-sans font-medium text-[18px] tracking-tight"><ShieldCheck size={18} strokeWidth={1.5} /> Dữ liệu của bạn được bảo vệ</div>
+            <div className="mt-4 space-y-2">
+              {[
+                { icon: Lock, t: 'Tài khoản riêng tư', d: 'Đăng nhập mới xem được hồ sơ của chính mình.' },
+                { icon: ImageIcon, t: 'Ảnh da khóa kín', d: 'Kho riêng tư, link xem tự hết hạn sau 1 giờ.' },
+                { icon: ClipboardList, t: 'Hồ sơ đúng người', d: 'Chỉ bác sĩ điều trị và bạn xem được.' },
+                { icon: Check, t: 'Mọi lượt xem đều ghi lại', d: 'Ai mở hồ sơ cũng để lại nhật ký kiểm tra.' },
+              ].map((r) => (
+                <div key={r.t} className="rounded-xl bg-stone px-4 py-3 flex items-start gap-3">
+                  <span className="w-8 h-8 shrink-0 rounded-full bg-forest text-snow flex items-center justify-center"><r.icon size={15} strokeWidth={1.5} /></span>
+                  <span><span className="block font-sans font-semibold text-[14px]">{r.t}</span><span className="block font-sans text-[13px] text-pewter mt-0.5">{r.d}</span></span>
+                </div>
               ))}
             </div>
-            <div className="mt-4 rounded-lg bg-forest text-snow p-4 font-mono font-light text-[12px] leading-relaxed">
-              bucket: luutruhoso<br />path: patients/DERM-2026-000001/visits/2026-08-10/image-01.jpg<br />policy: authenticated only → signed URL
-            </div>
+            <div className="mt-4 rounded-xl bg-lime text-forest px-4 py-3 font-sans text-[13px] font-medium">Không bán, không chia sẻ dữ liệu của bạn cho bên thứ ba.</div>
           </motion.div>
         </div>
       </section>
