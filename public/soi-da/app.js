@@ -406,17 +406,6 @@ async function quickAnalyze(angle) {
     const r = await analyzeAngle(angle, pipeTo);
     pipeDone();
     state[angle].quick = r;
-    if (r.excluded) {
-      drawOverlay(angle, [], r.oval);
-      copyToResult(angle);
-      setStat(angle, `KHÔNG phân tích — ảnh chưa đủ điều kiện (${(r.qv.issues || []).join(", ")})`);
-      const cap0 = el("cap-" + angle);
-      if (cap0) cap0.innerHTML = `<span class="badge bRED">Ảnh chưa đủ điều kiện — chưa phân tích</span><br/><span class="note">Vui lòng chụp lại trong ánh sáng đều, không có bóng đổ trực tiếp.</span>`;
-      const stb0 = el("st-" + angle);
-      if (stb0) stb0.innerHTML = `<span class="badge bRED">Cần chụp lại</span>`;
-      renderBlurBanner([r]);
-      return;
-    }
     drawOverlay(angle, r.lesions, r.oval);
     const nP = r.lesions.filter(l => ["pustule", "nodule", "papule"].includes(l.class)).length;
     const nC = r.lesions.filter(l => l.class === "comedone").length;
@@ -438,7 +427,6 @@ async function quickAnalyze(angle) {
       `<br/><span class="note">${r.guidance}${needRetake ? " ⚠️ <b>Nên chụp lại.</b>" : " ✅"}</span>`;
     const stb = el("st-" + angle);
     if (stb) stb.innerHTML = angleBadge(r);
-    renderBlurBanner([r]);
     const q = el("quickDetail");
     if (q) q.innerHTML = `<b>${angle}</b>: viêm <b>${nP}</b>, comedone <b>${nC}</b>, PIH <b>${nH}</b>, sắc tố <b>${nM}</b> — ${qc}.<br/>➡️ ${r.guidance} ${needRetake ? "⚠️ <b>Nên chụp lại góc này.</b>" : "✅ Đạt."}`;
   } catch (e) { setStat(angle, "Lỗi phân tích nhanh: " + e.message); }
@@ -1269,7 +1257,10 @@ async function analyzeAngle(angle, onStage) {
     blur, blurMarginal: blur_marginal, lightMean: light.mean, overPct: light.overPct, underPct: light.underPct,
     wbOff: illum ? illum.wbOff : 0, angleValid: angle_valid, faceFrac, skinRatio
   });
-  const excluded = qv.level === "FAIL";
+  // KHÔNG chặn phân tích: ảnh kém chỉ ghi chú nhẹ, vẫn soi kỹ vùng mặt
+  const qualityNote = qv.level === "FAIL"
+    ? `ảnh hơi kém (${(qv.issues || []).join(", ")}) — kết quả mang tính tham khảo, chụp lại rõ hơn để chắc chắn`
+    : (qv.level === "MARGINAL" ? "ảnh tạm được — giữ máy vững + đủ sáng sẽ chuẩn hơn" : "");
   const guidance = angleGuidance(angle, yawEst);
   const norm = anchors
     ? { cx: anchors.cx, hw: anchors.hw, top: anchors.top, faceH: anchors.faceH }
@@ -1277,7 +1268,7 @@ async function analyzeAngle(angle, onStage) {
   const base = {
     angle, lm: !!lm, pose: pose || { yaw: 0, pitch: 0, roll: 0, estimated: false },
     yawEst, blur: +blur.toFixed(1), light, angle_valid, lighting_valid,
-    blur_pass, blur_marginal, guidance, skinRatio, oval: masks.oval, qv, excluded, norm,
+    blur_pass, blur_marginal, guidance, skinRatio, oval: masks.oval, qv, excluded: false, qualityNote, norm,
     faceFrac: +faceFrac.toFixed(3),
     illum: illum ? {
       meanY: +illum.meanY.toFixed(1), medianY: illum.medianY, asym: +illum.asym.toFixed(3),
@@ -1286,7 +1277,7 @@ async function analyzeAngle(angle, onStage) {
     } : null,
     lesions: [], perROI: {}, fpStats: { candidates: 0, confirmed: 0, drop: {} }
   };
-  if (excluded) { stage(7); return base; } // ảnh kém: DỪNG, không phân tích nốt
+  // luôn chạy tiếp: soi vùng mặt + tìm nốt dù ảnh chưa hoàn hảo
   stage(3); // B3: loại bóng (shadow/hi mask đã có trong illum)
   stage(4); // B4: phân vùng khuôn mặt
   const roiMasks = buildRoiMasks(masks, anchors, lm, c.width, c.height);
@@ -1335,7 +1326,7 @@ async function analyzeAll(auto) {
 }
 
 function aggregate(results) {
-  const usable = results.filter(r => !r.excluded);
+  const usable = results; // luôn phân tích mọi góc đã chụp, không loại ảnh nào
   // Tọa độ giải phẫu chuẩn hóa (u,v theo khung mặt) để đối chiếu cùng vị trí giữa các ảnh
   let all = [];
   usable.forEach(r => r.lesions.forEach(l => {
@@ -1403,8 +1394,9 @@ function aggregate(results) {
   if (droppedCross.length) reasons.push(`${droppedCross.length} dấu hiệu chỉ thấy ở 1 góc (không đối chứng được với góc khác) đã loại khỏi kết quả`);
   const spread = lightSpread(usable.map(r => r.illum ? r.illum.medianY : null).filter(v => v != null));
   if (!spread.stable) reasons.push(`Ánh sáng 3 ảnh chênh lệch ( spread ${spread.spread}) — nên chụp lại 3 góc cùng một chỗ sáng đều để đối chứng tốt hơn`);
-  const exclAngles = results.filter(r => r.excluded).map(r => r.angle);
-  if (exclAngles.length) reasons.push(`Ảnh chưa đủ điều kiện nên KHÔNG phân tích: ${exclAngles.join(", ")} — vui lòng chụp lại trong ánh sáng đều, không có bóng đổ trực tiếp`);
+  const exclAngles = [];
+  const softQ = results.filter(r => r.qv && r.qv.level !== "PASS");
+  if (softQ.length) reasons.push(`Lưu ý chất lượng ảnh (${softQ.map(r => r.angle).join(", ")}) — kết quả mang tính tham khảo, chụp lại rõ hơn để chắc chắn`);
   const cond = triage === "RED" && molesSusp.length ? "Tổn thương sắc tố cần theo dõi (ABCDE) & Đỏ da/Viêm da"
     : triage === "RED" ? "Đỏ da/Viêm da tiếp xúc (cần loại trừ)"
     : gags >= 31 ? "Acne Vulgaris (Nặng) & PIH" : gags >= 19 ? "Acne Vulgaris (Trung bình) & PIH" : "Acne Vulgaris (Nhẹ) & PIH";
@@ -1417,14 +1409,14 @@ function aggregate(results) {
     const c = k => L.filter(l => l.class === k).length;
     const vis = Object.values(r.perROI).filter(v => v.visible).map(v => v.erythemaPct);
     perAngle[r.angle] = {
-      excluded: !!r.excluded,
+      excluded: false,
       quality: r.qv ? r.qv.level : "?",
       pustules_count: L.filter(l => ["pustule", "nodule", "papule"].includes(l.class)).length,
       comedones_count: c("comedones"), pih_count: c("pih"),
       moles_count: L.filter(l => l.class === "mole").length,
       unverified_single_view: L.filter(l => l.xview === false).length,
       erythema_pct: vis.length ? Math.max(...vis) : 0,
-      dominant_issue: r.excluded ? "Ảnh chưa đủ điều kiện — chưa phân tích" : dominant(L)
+      dominant_issue: dominant(L)
     };
   });
   // so vector lệch của mặt với mạng tri thức kb -> độ tương đồng từng bệnh
@@ -1446,16 +1438,6 @@ function dominant(L) {
 // ---------- badge, ma trận cấp độ vùng, zoom nốt, cổng blur ----------
 // Ảnh đạt chuẩn? -> chỉ khi đạt mới được gợi ý "gặp bác sĩ" ở mức Đỏ
 function qualityStdOf(r) { return r && (r.blur_pass || r.blur_marginal) && r.lighting_valid; }
-function renderBlurBanner(results) {
-  const box = el("blurWarn"); if (!box) return;
-  const excl = results.filter(r => r.excluded);
-  const bad = results.filter(r => !r.excluded && (!(r.blur_pass || r.blur_marginal) || !r.lighting_valid));
-  let html = "";
-  if (excl.length) html += `<div class="warnbox">⛔ Ảnh chưa đủ điều kiện để phân tích chính xác (${excl.map(r => r.angle).join(", ")}: ${(excl[0].qv.issues || []).join(", ")}). Vui lòng chụp lại trong ánh sáng đều, không có bóng đổ trực tiếp. Các ảnh này đã bị LOẠI khỏi kết quả.</div>`;
-  if (bad.length) html += `<div class="warnbox">⚠️ Hình ảnh quá mờ để phân tích chính xác (${bad.map(r => r.angle).join(", ")}). ` +
-    `Vui lòng chụp lại bằng camera nét hơn (giữ máy vững, đủ sáng, tắt filter làm mịn). Kết quả bên dưới chỉ mang tính tham khảo.</div>`;
-  box.innerHTML = html;
-}
 function capBadges(nP, nC, nH, nM) {
   return `<span class="statbadge sb-red">Viêm: ${nP}</span><span class="statbadge sb-yellow">Nhân mụn: ${nC}</span>` +
     `<span class="statbadge sb-blue">Thâm: ${nH}</span><span class="statbadge sb-gray">Sắc tố: ${nM}</span>`;
@@ -1477,7 +1459,6 @@ function renderSevMatrix(results, agg) {
     const L = byRoi[k] || [];
     let vis = false, skin = 0, sh = 0, passVis = false;
     results.forEach(r => {
-      if (r.excluded) return;
       const v = r.perROI[k]; if (!v) return;
       vis = vis || v.visible; skin += v.skinPx || 0; sh = Math.max(sh, v.shadowPct || 0);
       if (v.visible && r.qv && r.qv.level === "PASS") passVis = true;
@@ -1596,42 +1577,34 @@ function renderCharts(results, agg) {
 }
 // ---------- render ----------
 function renderAll(results, agg) {
-  // overlay — góc bị loại (ảnh kém) KHÔNG vẽ nốt, không tính điểm
+  // overlay: luôn vẽ nốt đã xác nhận trên đúng vị trí từng góc
   results.forEach(r => {
-    const L = r.excluded ? [] : agg.kept.filter(l => l.angle === r.angle);
+    const L = agg.kept.filter(l => l.angle === r.angle);
     drawOverlay(r.angle, L, r.oval);
     copyToResult(r.angle);
     attachTooltip(el("rv-" + r.angle), L, agg.vecMatch.best ? agg.vecMatch.best.label : null);
     const cap = el("cap-" + r.angle);
     if (cap) {
-      if (r.excluded) {
-        cap.innerHTML = `<span class="badge bRED">Ảnh chưa đủ điều kiện — chưa phân tích</span><br/><span class="note">Vui lòng chụp lại trong ánh sáng đều, không có bóng đổ trực tiếp.</span>`;
-      } else {
-        const nP = L.filter(l => ["pustule", "nodule", "papule"].includes(l.class)).length;
-        cap.innerHTML = capBadges(nP, L.filter(l => l.class === "comedone").length, L.filter(l => l.class === "pih").length, L.filter(l => l.class === "mole").length) +
-          `<br/><span class="note">${r.guidance}</span>`;
-      }
+      const nP = L.filter(l => ["pustule", "nodule", "papule"].includes(l.class)).length;
+      cap.innerHTML = capBadges(nP, L.filter(l => l.class === "comedone").length, L.filter(l => l.class === "pih").length, L.filter(l => l.class === "mole").length) +
+        `<br/><span class="note">${r.guidance}${r.qualityNote ? " • " + r.qualityNote : ""}</span>`;
     }
     const stb = el("st-" + r.angle);
     if (stb) stb.innerHTML = angleBadge(r);
     const yawT = r.yawEst == null ? "?°" : r.yawEst + "°";
-    const bT = r.blur_pass ? "đạt" : (r.blur_marginal ? "hơi mờ" : "MỜ");
-    setStat(r.angle, r.excluded
-      ? `KHÔNG phân tích — ảnh chưa đủ điều kiện (${(r.qv.issues || []).join(", ")})`
-      : `góc quay mặt ${yawT} • độ nét ${r.blur} (${bT}) • sáng da ${r.light.mean.toFixed(0)} ${r.lighting_valid ? "(ổn)" : "(KÉM)"} • nhận diện da ${r.skinRatio}%`);
+    const bT = r.blur_pass ? "đạt" : (r.blur_marginal ? "hơi mờ" : "mờ");
+    setStat(r.angle, `góc quay mặt ${yawT} • độ nét ${r.blur} (${bT}) • sáng da ${r.light.mean.toFixed(0)} • nhận diện da ${r.skinRatio}%`);
   });
   // QC
   document.getElementById("qc").innerHTML = results.map(r => `
-    <div class="pill"><b>${r.angle}</b> ${r.excluded ? "<span class='badge bRED'>LOẠI — ảnh kém</span>" : `<span class="badge ${r.qv.level === "PASS" ? "bGREEN" : "bYELLOW"}">${r.qv.level}</span>`}<br/>
+    <div class="pill"><b>${r.angle}</b> <span class="badge ${r.qv.level === "PASS" ? "bGREEN" : "bYELLOW"}">${r.qv.level === "PASS" ? "Ảnh tốt" : "Ảnh tạm"}</span><br/>
     góc quay mặt (yaw) <span class="${r.angle_valid == null ? "" : (r.angle_valid ? "pass" : "fail")}">${r.yawEst == null ? "? (AI không thấy rõ mặt)" : r.yawEst + "° " + (r.angle_valid ? "✓" : "✗ sai góc")}</span><br/>
-    độ nét vùng mặt (mức mờ/nhòe) <span class="${r.blur_pass ? "pass" : (r.blur_marginal ? "" : "fail")}">${r.blur} ${r.blur_pass ? "đạt" : (r.blur_marginal ? "hơi mờ — giữ máy vững hơn" : "MỜ, cần chụp lại")}</span><br/>
-    độ sáng trên da <span class="${r.lighting_valid ? "pass" : "fail"}">${r.light.mean.toFixed(0)} (cháy sáng ${r.light.overPct.toFixed(1)}%/tối ${r.light.underPct.toFixed(1)}%)</span><br/>
-    lệch sáng 2 bên ${r.illum ? (r.illum.asym * 100).toFixed(0) + "%" : "?"} • bóng đổ ${r.illum ? r.illum.shadowPct + "%" : "?"} • chói ${r.illum ? r.illum.hiPct + "%" : "?"}<br/>
-    tỉ lệ da AI nhận được ${r.skinRatio}% • nhận diện mặt ${r.lm ? "468 điểm" : "không rõ (dự phòng)"}<br/><span>${r.guidance}</span></div>`).join("");
+    độ nét vùng mặt <span class="${r.blur_pass ? "pass" : ""}">${r.blur} ${r.blur_pass ? "đạt" : "(hơi mờ)"}</span> •
+    sáng da <span class="${r.lighting_valid ? "pass" : "fail"}">${r.light.mean.toFixed(0)}</span> •
+    bóng đổ ${r.illum ? r.illum.shadowPct + "%" : "?"}<br/><span>${r.guidance}</span></div>`).join("");
   const frontalOk = results.find(r => r.angle === "frontal");
-  const frontalSevere = !frontalOk || frontalOk.excluded;
-  const rejected = frontalSevere;
-  const status = rejected ? "QUALITY_REJECTED" : "SUCCESS";
+  const rejected = false;
+  const status = "SUCCESS";
   // KPI
   document.getElementById("kPrimary").textContent = agg.cond;
   const ks = document.getElementById("kSim");
@@ -1642,21 +1615,17 @@ function renderAll(results, agg) {
   renderCharts(results, agg);
   renderSevMatrix(results, agg);
   renderZooms(agg.kept);
-  renderBlurBanner(results);
   setStepBar(3);
   pipeDone(); // B8: biểu đồ xong
-  // Cổng chất lượng: ảnh chính diện kém -> KHÔNG kết luận, báo chụp lại (đúng spec)
   // Cổng "gặp bác sĩ": chỉ khi ảnh đạt chuẩn + tổn thương mức Đỏ thật
-  const doctorOK = !frontalOk.excluded && qualityStdOf(frontalOk) && agg.triage === "RED";
-  const actionTxt = rejected
-    ? "Ảnh chưa đủ điều kiện để phân tích chính xác. Vui lòng chụp lại trong ánh sáng đều, không có bóng đổ trực tiếp."
-    : (agg.triage === "RED" && !doctorOK
-      ? "Ảnh chưa đạt chuẩn nên chưa thể kết luận — hãy chụp lại rõ nét (đủ sáng, giữ máy vững, tắt filter). Tạm thời chăm sóc dịu nhẹ + theo dõi, chưa vội kết luận nặng."
-      : (KB ? KB.triage_rules[agg.triage].action : ""));
+  const doctorOK = qualityStdOf(frontalOk) && agg.triage === "RED";
+  const actionTxt = (agg.triage === "RED" && !doctorOK)
+    ? "Ảnh chưa thật nét nên kết quả mang tính tham khảo — chụp lại rõ hơn để chắc chắn. Tạm thời chăm sóc dịu nhẹ + theo dõi."
+    : (KB ? KB.triage_rules[agg.triage].action : "");
   window.__doctorOK = doctorOK;
   document.getElementById("triageBanner").innerHTML =
     `<span class="badge b${agg.triage}">${agg.triage} — ${KB ? KB.triage_rules[agg.triage].label : ""}</span>
-     <p style="color:var(--muted);font-size:14px;font-weight:600">${agg.reasons.join(" • ")}${rejected ? " • <b style='color:#f87171'>Ảnh chính diện chưa đạt chất lượng — hãy chụp lại nơi đủ sáng, tắt filter, giữ máy vững.</b>" : ""}</p>
+     <p style="color:var(--muted);font-size:14px;font-weight:600">${agg.reasons.join(" • ")}</p>
      <p style="font-size:14px;font-weight:700">${actionTxt}</p>`;
   const tbl = document.querySelector("#tbl tbody");
   if (tbl) tbl.innerHTML = ["left_cheek", "frontal", "right_cheek"].map(k => {
@@ -1712,7 +1681,6 @@ function mdReport(out, agg, results) {
   const gagsTxt = Object.entries(agg.gagsDetail).map(([k, v]) => `${ROI_VI[k] || k}: ${v ? v + " điểm" : "0 (sạch)"}`).join(" • ");
   const qTxt = results.map(r => {
     const nm = r.angle === "frontal" ? "chính diện" : (r.angle === "left_cheek" ? "má trái" : "má phải");
-    if (r.excluded) return `${nm}: CHƯA ĐẠT (${(r.qv.issues || []).join(", ")}) — cần chụp lại`;
     return `${nm}: ${r.qv.level === "PASS" ? "đạt" : "tạm được"} (góc quay ${r.yawEst == null ? "?" : r.yawEst + "°"}, độ nét ${r.blur}, bóng đổ ${r.illum ? r.illum.shadowPct + "%" : "?"})`;
   }).join(" | ");
   return `<h3>Báo cáo Da liễu (AI hỗ trợ — không thay thế bác sĩ)</h3>
