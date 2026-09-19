@@ -1,5 +1,5 @@
 // DermaCare — dữ liệu dùng chung (đồng bộ Landing + Booking + Portals)
-// 8 nhóm điều trị da liễu — logic thật, không bịa bác sĩ tượng trưng
+// 12 nhóm điều trị da liễu — logic thật, không bịa bác sĩ tượng trưng
 
 export const SPECIALTIES = [
   {
@@ -57,6 +57,34 @@ export const SPECIALTIES = [
     desc: 'Nốt ruồi bất thường, dày sừng, tổn thương nghi ngờ. Soi da và tầm soát sớm.',
     diseases: ['Nốt ruồi bất thường', 'Dày sừng', 'Tổn thương nghi ngờ', 'Tầm soát định kỳ'],
     icon: 'eye',
+  },
+  {
+    slug: 'nam-mong',
+    name: 'Nấm móng & Bệnh móng',
+    desc: 'Nấm móng, móng quặm, viêm quanh móng. Điều trị kiên trì, tránh lây lan.',
+    diseases: ['Nấm móng', 'Móng quặm', 'Viêm quanh móng', 'Móng dày vàng'],
+    icon: 'layers',
+  },
+  {
+    slug: 'cham-sua-tre-em',
+    name: 'Chàm sữa & Da trẻ em',
+    desc: 'Chàm sữa, rôm sảy, hăm tã, thủy đậu. Nội dung dễ hiểu cho ba mẹ.',
+    diseases: ['Chàm sữa', 'Rôm sảy', 'Hăm tã', 'Thủy đậu', 'Tay chân miệng'],
+    icon: 'shield',
+  },
+  {
+    slug: 'seo-loi-vet-thuong',
+    name: 'Sẹo lồi & Vết thương khó lành',
+    desc: 'Sẹo lồi, sẹo phì đại, loét da, vết bỏng. Can thiệp sớm hạn chế sẹo xấu.',
+    diseases: ['Sẹo lồi', 'Sẹo phì đại', 'Loét tì đè', 'Vết bỏng', 'Vết thương lâu lành'],
+    icon: 'layers',
+  },
+  {
+    slug: 'viem-da-tiet-ba',
+    name: 'Viêm da tiết bã & Đỏ da mặt',
+    desc: 'Viêm da tiết bã, đỏ da, giãn mạch vùng mặt. Kiểm soát đợt bùng phát.',
+    diseases: ['Viêm da tiết bã', 'Đỏ da mặt', 'Giãn mạch', 'Bong vảy vùng chữ T'],
+    icon: 'sun',
   },
 ]
 
@@ -139,12 +167,16 @@ export function guessSpecialtyFromText(text = '') {
   const t = text.toLowerCase()
   const rules = [
     { slug: 'mun-trung-ca-seo', keys: ['mụn', 'thâm', 'sẹo rỗ', 'đầu đen', 'mụn ẩn', 'mụn viêm'] },
+    { slug: 'cham-sua-tre-em', keys: ['chàm sữa', 'rôm sảy', 'hăm tã', 'thủy đậu', 'tay chân miệng', 'cứt trâu'] },
     { slug: 'viem-da-di-ung', keys: ['ngứa', 'mề đay', 'dị ứng', 'chàm', 'viêm da cơ địa', 'mẩn'] },
     { slug: 'sac-to-nam', keys: ['nám', 'tàn nhang', 'sắc tố', 'đồi mồi', 'thâm nám'] },
+    { slug: 'viem-da-tiet-ba', keys: ['viêm da tiết bã', 'đỏ da mặt', 'giãn mạch'] },
     { slug: 'vay-nen-man-tinh', keys: ['vảy nến', 'tiết bã', 'rosacea', 'đỏ mặt', 'bong vảy'] },
+    { slug: 'nam-mong', keys: ['nấm móng', 'móng quặm', 'móng dày', 'móng vàng', 'viêm quanh móng'] },
     { slug: 'nhiem-trung-da', keys: ['nấm', 'lang ben', 'herpes', 'zona', 'chốc', 'mụn cóc', 'viêm nang'] },
     { slug: 'toc-da-dau', keys: ['rụng tóc', 'hói', 'gàu', 'da đầu', 'nang tóc'] },
     { slug: 'tre-hoa-tham-my', keys: ['lão hóa', 'nếp nhăn', 'lỗ chân lông', 'trẻ hóa', 'không đều màu'] },
+    { slug: 'seo-loi-vet-thuong', keys: ['sẹo lồi', 'sẹo phì đại', 'loét', 'vết bỏng', 'vết thương lâu lành', 'tì đè'] },
     { slug: 'not-ruoi-ung-thu', keys: ['nốt ruồi', 'ung thư', 'tầm soát', 'dày sừng', 'đốm nâu lạ'] },
   ]
   for (const r of rules) {

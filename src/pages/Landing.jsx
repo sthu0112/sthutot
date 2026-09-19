@@ -244,7 +244,7 @@ export default function Landing() {
             <p className="font-sans text-[15px] text-pewter mt-2">Cùng một font chữ với toàn web — rõ ràng, dễ đọc trên mọi thiết bị.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
               {[
-                { k: 'Chuyên khoa', v: '8 nhóm bệnh da', d: 'Mụn, viêm da, nám, nấm...' },
+                { k: 'Chuyên khoa', v: `${SPECIALTIES.length} nhóm bệnh da`, d: 'Mụn, viêm da, nám, nấm...' },
                 { k: 'Độ tuổi', v: 'Bé → ông bà', d: 'Nội dung theo từng lứa tuổi' },
                 { k: 'Đặt lịch', v: '5 phút online', d: '9 khung giờ mỗi ngày' },
                 { k: 'Đồng hành', v: 'AI + Cẩm nang', d: 'Hỏi đáp và chăm sóc tại nhà' },
@@ -273,7 +273,7 @@ export default function Landing() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <div className="font-sans text-[12px] uppercase tracking-wide text-pewter font-medium">Chuyên khoa</div>
-              <h2 className="font-sans font-semibold text-[32px] md:text-[36px] leading-[1.1] tracking-tight mt-2">8 nhóm bệnh da — đặt đúng bác sĩ</h2>
+              <h2 className="font-sans font-semibold text-[32px] md:text-[36px] leading-[1.1] tracking-tight mt-2">{SPECIALTIES.length} nhóm bệnh da — đặt đúng bác sĩ</h2>
               <p className="font-sans text-[15px] text-pewter mt-2">Bấm vào nhóm bệnh để đặt lịch, web tự gợi ý bác sĩ đúng chuyên môn.</p>
             </div>
             <Link to="/dat-lich" className="inline-flex items-center gap-2 px-5 py-3 rounded-pill bg-forest text-snow font-sans text-[14px] shrink-0">Đặt lịch ngay <ArrowRight size={15} /></Link>
@@ -325,7 +325,7 @@ export default function Landing() {
       <section className="w-full bg-forest text-snow">
         <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-12 grid grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { v: '8', l: 'Nhóm bệnh da chuyên sâu' },
+            { v: String(SPECIALTIES.length), l: 'Nhóm bệnh da chuyên sâu' },
             { v: '9', l: 'Khung giờ khám mỗi ngày' },
             { v: '15′', l: 'Xác nhận lịch trung bình' },
             { v: '4', l: 'Nhóm tuổi được chăm sóc' },

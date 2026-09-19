@@ -87,7 +87,7 @@ function offlineReply(messages) {
   const list = SPECIALTIES.map((s) => s.name).join(', ')
   return {
     reply:
-      `Mình chưa nhận diện được nhóm bệnh. DermaCare có 8 nhóm: ${list}. ` +
+      `Mình chưa nhận diện được nhóm bệnh. DermaCare có ${SPECIALTIES.length} nhóm: ${list}. ` +
       `Bạn bao nhiêu tuổi và mô tả thêm (vị trí, màu sắc, ngứa/đau, bao lâu rồi) giúp mình nhé.`,
     level: 'none',
     suggested_specialty: null,
