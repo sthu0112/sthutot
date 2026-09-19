@@ -208,7 +208,19 @@ async function openCamera() {
       throw new Error("Không tìm thấy camera khả dụng (" + (err ? err.name : "unknown") + ").");
     }
     v.srcObject = camStream;
+    v.muted = true;
+    try { v.setAttribute("playsinline", ""); } catch {}
     try { await v.play(); } catch (e) { /* một số máy cần chạm mới play, vẫn tiếp tục */ }
+    // Đợi video RA HÌNH thật (có kích thước khung) mới chạy tiếp — không thì báo rõ
+    try {
+      await new Promise((res, rej) => {
+        if (v.videoWidth) return res();
+        const to = setTimeout(() => rej(new Error("timeout")), 8000);
+        v.onloadedmetadata = () => { clearTimeout(to); res(); };
+      });
+    } catch {
+      throw new Error("Camera đã mở nhưng không ra hình. Hãy thử chọn camera khác, tải lại trang, hoặc dùng Chrome mới nhất.");
+    }
     lastTrackLm = null; smoothBox = null;
     startLiveLoop();
     say("✅ Camera đã mở — khung hình tự bám theo mặt bạn.");
@@ -218,6 +230,30 @@ async function openCamera() {
     say("❌ " + e.message);
   }
   updateProgress();
+}
+// Chẩn đoán camera 1 chạm — hiện đúng chỗ hỏng để fix, không đoán mò
+async function diagCamera() {
+  const st = el("camStatus");
+  const say = t => { if (st) st.textContent = t; };
+  const out = [];
+  try {
+    out.push("mạng: " + (navigator.onLine === false ? "MẤT MẠNG" : "ok"));
+    out.push("bảo mật: " + (window.isSecureContext ? "ok" : "THIẾU HTTPS"));
+    out.push("mediaDevices: " + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "ok" : "THIẾU (đổi Chrome mới)"));
+    out.push("engine: " + (typeof analyzeAngle === "function" ? "ok" : "THIẾU (tải lại trang)"));
+    out.push("AI mặt: " + (typeof FaceMesh !== "undefined" ? "ok" : "chưa tải (cần mạng)"));
+    const need = ["liveCanvas", "camVideo", "camSnap", "faceStatus", "followToggle", "camDevice", "btnShoot", "countdown"];
+    const miss = need.filter(id => !document.getElementById(id));
+    out.push("khung hình: " + (miss.length ? "THIẾU " + miss.join(",") : "ok"));
+    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+      try {
+        const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput");
+        out.push("tìm thấy " + devs.length + " camera" + (devs.length ? "" : " (máy không thấy camera nào)"));
+      } catch { out.push("liệt kê camera lỗi"); }
+    }
+    out.push("stream: " + (typeof camStream !== "undefined" && camStream ? "đang mở" : "chưa mở"));
+  } catch (e) { out.push("lỗi chẩn đoán: " + e.message); }
+  say("🔧 " + out.join(" • "));
 }
 function stopCamera(silent) {
   try {

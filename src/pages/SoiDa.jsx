@@ -99,20 +99,20 @@ export default function SoiDa() {
   return (
     <div className="soida-scope min-h-screen bg-snow text-forest">
       <header className="sticky top-0 z-30 bg-snow/95 backdrop-blur border-b border-forest/10">
-        <div className="w-full px-4 sm:px-8 h-16 flex items-center justify-between gap-3">
-          <Link to="/" className="flex items-center gap-2 font-semibold text-[18px] tracking-tight">DermaCare <span className="w-2 h-2 rounded-full bg-forest" /></Link>
+        <div className="w-full px-4 sm:px-8 h-16 flex items-center justify-between gap-2">
+          <Link to="/" className="flex items-center gap-2 font-semibold text-[17px] sm:text-[18px] tracking-tight shrink-0">DermaCare <span className="w-2 h-2 rounded-full bg-forest" /></Link>
           <nav className="hidden md:flex items-center gap-6 text-[15px]">
             <Link to="/" className="hover:opacity-70">Trang chủ</Link>
             <Link to="/dat-lich" className="hover:opacity-70">Đặt lịch</Link>
             <Link to="/tro-ly-ai" className="hover:opacity-70">Hỏi AI</Link>
             <span className="font-bold border-b-2 border-forest pb-0.5">Soi da</span>
           </nav>
-          <Link to="/dat-lich" className="px-5 py-2.5 rounded-pill bg-forest text-snow text-[14px] font-medium">Đặt lịch khám</Link>
+          <Link to="/dat-lich" className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-pill bg-forest text-snow text-[13px] sm:text-[14px] font-medium shrink-0">Đặt lịch khám</Link>
         </div>
       </header>
 
       <main className="max-w-[1080px] mx-auto px-4 sm:px-6 py-5">
-        <div className="flex items-center gap-2 text-[14px]">
+        <div className="flex flex-wrap items-center gap-2 text-[14px]">
           <div className="sstep" id="s1"><i>1</i> Chụp</div>
           <div className="sstep" id="s2"><i>2</i> Phân tích</div>
           <div className="sstep" id="s3"><i>3</i> Kết quả</div>
@@ -139,11 +139,11 @@ export default function SoiDa() {
             </ol>
           </div>
 
-          <div className="grid gap-3.5" style={{ gridTemplateColumns: '1.25fr 1fr' }}>
+          <div className="grid gap-3.5 md:grid-cols-[1.25fr_1fr]">
             <div className="relative bg-[#0b1526] rounded-xl overflow-hidden min-h-[280px]">
-              <canvas id="liveCanvas" width="640" height="480" className="w-full h-[360px] object-cover block bg-[#0b1526]" />
+              <canvas id="liveCanvas" width="640" height="480" className="w-full h-[280px] sm:h-[360px] object-cover block bg-[#0b1526]" />
               <div id="countdown" className="absolute inset-0 flex items-center justify-center font-black pointer-events-none" style={{ fontSize: 110, color: '#fff', textShadow: '0 4px 30px rgba(0,0,0,.7)' }} />
-              <div id="faceStatus" className="facestat absolute left-2.5 bottom-2.5 text-white text-[14px] font-bold px-3.5 py-2 rounded-full" style={{ background: 'rgba(2,10,25,.72)' }}>Camera chưa mở</div>
+              <div className="absolute left-2.5 bottom-2.5 max-w-[92%]"><div id="faceStatus" className="facestat">Camera chưa mở</div></div>
             </div>
             <div>
               <div className="grid grid-cols-3 gap-2 mb-2">
@@ -156,9 +156,10 @@ export default function SoiDa() {
                 <select id="camDevice" className="bg-white border border-forest/15 rounded-xl px-2.5 py-2 text-[13px] font-semibold text-forest"><option value="">Camera mặc định</option></select>
               </div>
               <div className="flex gap-2 flex-wrap my-2 items-center">
-                <button id="btnOpenCam" onClick={openCam} className="rounded-pill bg-forest text-lime px-4 py-2.5 text-[14px] font-bold">▶ Mở camera</button>
-                <button id="btnShoot" onClick={shoot} disabled className="rounded-pill bg-forest text-lime px-5 py-3 text-[15px] font-bold disabled:opacity-45">📸 Chụp (3-2-1)</button>
+                <button id="btnOpenCam" onClick={openCam} className="rounded-pill bg-forest text-lime px-4 py-2.5 text-[14px] font-bold w-full sm:w-auto">▶ Mở camera</button>
+                <button id="btnShoot" onClick={shoot} disabled className="rounded-pill bg-forest text-lime px-5 py-3 text-[15px] font-bold disabled:opacity-45 w-full sm:w-auto">📸 Chụp (3-2-1)</button>
                 <button onClick={stopCam} className="rounded-pill bg-white border border-forest/15 px-4 py-2.5 text-[14px] font-bold">Dừng</button>
+                <button onClick={() => W('diagCamera')()} className="rounded-pill bg-white border border-forest/15 px-4 py-2.5 text-[14px] font-bold">🔧 Kiểm tra</button>
               </div>
               <label className="text-[13px] font-semibold text-pewter flex gap-1.5 items-center"><input type="checkbox" id="followToggle" defaultChecked className="w-auto" /> Camera tự bám theo mặt</label>
               <div className="flex gap-2 flex-wrap my-2 items-center">
@@ -216,7 +217,7 @@ export default function SoiDa() {
             <b style={{ color: '#a855f7' }}> H</b> thâm (vết nâu sau mụn) •
             <b style={{ color: '#ec4899' }}> M</b> sắc tố (đốm nâu/đen)
           </div>
-          <div className="grid gap-3" style={{ gridTemplateColumns: '300px 1fr' }}>
+          <div className="grid gap-3 md:grid-cols-[300px_1fr]">
             <div className="border border-forest/10 rounded-2xl bg-[#fbfbf4] p-3">
               <h3 className="m-0 mb-2 text-[15px] font-extrabold">🥧 Tỉ lệ loại tổn thương <span className="text-[12px] font-semibold text-pewter">(chỉ nốt đã xác nhận)</span></h3>
               <canvas id="pieChart" width="280" height="280" className="w-full max-w-[280px] block mx-auto" />
