@@ -99,7 +99,7 @@ export default function Landing() {
             <a href="#tinh-nang" className="hover:opacity-70">Tính năng</a>
             <a href="#faq" className="hover:opacity-70">Hỏi đáp</a>
             <Link to="/dat-lich" className="hover:opacity-70">Đặt lịch</Link>
-            <a href="/soi-da/index.html" className="hover:opacity-70">Soi da</a>
+            <a href="/soi-da" className="hover:opacity-70">Soi da</a>
             <Link to="/tro-ly-ai" className="hover:opacity-70">Hỏi AI</Link>
             <Link to="/cam-nang" className="hover:opacity-70">Cẩm nang</Link>
           </nav>
@@ -156,7 +156,7 @@ export default function Landing() {
                   Đặt lịch khám <ArrowRight size={16} strokeWidth={1.5} />
                 </Link>
                 <Link to="/login" onClick={() => playClick('tap')} className="inline-flex items-center gap-2 px-6 py-4 rounded-pill bg-snow border-[1.5px] border-forest text-forest text-[16px] font-sans hover:opacity-80 hover:scale-[1.02] active:scale-[0.98] transition-transform">Xem demo</Link>
-                <a href="/soi-da/index.html" onClick={() => playClick('success')} className="inline-flex items-center gap-2 px-8 py-5 rounded-pill bg-lime text-forest text-[18px] font-sans font-semibold shadow-lg hover:opacity-90 hover:scale-[1.03] active:scale-[0.98] transition-transform"><ScanFace size={20} strokeWidth={2} /> Soi da AI</a>
+                <a href="/soi-da" onClick={() => playClick('success')} className="inline-flex items-center gap-2 px-8 py-5 rounded-pill bg-lime text-forest text-[18px] font-sans font-semibold shadow-lg hover:opacity-90 hover:scale-[1.03] active:scale-[0.98] transition-transform"><ScanFace size={20} strokeWidth={2} /> Soi da AI</a>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -349,7 +349,7 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-4 mt-10">
             <FeatureCard icon={ClipboardList} title="Hồ sơ & mã duy nhất" desc="Tự sinh DERM-YYYY-XXXXXX, không trùng, sao chép 1 chạm, tìm kiếm tức thì." delay={0.05} />
             <FeatureCard icon={Activity} title="Thăm khám có cấu trúc" desc="Lý do, triệu chứng, khám da, chẩn đoán, điều trị, tái khám — đầy đủ." delay={0.1} />
-            <FeatureCard icon={ScanFace} title="Soi da AI" desc="Chụp 3 góc mặt, AI khoanh vùng mụn — thâm — sắc tố, đối chứng đa góc trước khi kết luận." delay={0.15} href="/soi-da/index.html" cta="Quét da ngay" />
+            <FeatureCard icon={ScanFace} title="Soi da AI" desc="Chụp 3 góc mặt, AI khoanh vùng mụn — thâm — sắc tố, đối chứng đa góc trước khi kết luận." delay={0.15} href="/soi-da" cta="Quét da ngay" />
             <FeatureCard icon={Search} title="Tìm kiếm toàn cục" desc="Ctrl+K tìm bằng mã/tên/SĐT, ưu tiên mã hồ sơ chính xác." delay={0.05} />
             <FeatureCard icon={Users} title="Phân quyền" desc="admin/doctor/patient + RLS ở DB, không chỉ frontend." delay={0.1} />
             <FeatureCard icon={FileText} title="Xuất & in" desc="In PDF hồ sơ, kiểm tra quyền trước khi xuất." delay={0.15} />
@@ -524,7 +524,7 @@ export default function Landing() {
 
           <div className="border-t border-snow/15 mt-6 pt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { h: 'Khám bệnh', links: [['Đặt lịch khám', '/dat-lich'], ['Soi da AI', '/soi-da/index.html'], ['Hỏi AI trước khi đặt', '/tro-ly-ai'], ['Cẩm nang da', '/cam-nang'], ['Lịch của tôi', '/benh-nhan']] },
+              { h: 'Khám bệnh', links: [['Đặt lịch khám', '/dat-lich'], ['Soi da AI', '/soi-da'], ['Hỏi AI trước khi đặt', '/tro-ly-ai'], ['Cẩm nang da', '/cam-nang'], ['Lịch của tôi', '/benh-nhan']] },
               { h: 'Tài liệu', links: [['Tổng quan', '#tong-quan'], ['Chuyên khoa', '#chuyen-khoa'], ['Độ tuổi', '#do-tuoi'], ['Hỏi đáp', '#faq']] },
               { h: 'Tài khoản', links: [['Đăng nhập', '/login'], ['Đăng ký', '/register'], ['Trang bác sĩ', '/bac-si']] },
               { h: 'Liên hệ', links: [['Hotline: 1900 6368', 'tel:19006368'], ['Về trang chủ', '/'], ['Đặt lịch khám', '/dat-lich']] },
