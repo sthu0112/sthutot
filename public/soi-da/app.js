@@ -243,7 +243,7 @@ async function openCamera() {
     try { await listCameras(); } catch {}
     setStepBar(1);
   } catch (e) {
-    say("❌ " + e.message);
+    say("❌ " + e.message + " • Hoặc bấm 📤 Tải ảnh lên để chụp bằng camera thường rồi tải vào.");
   }
   updateProgress();
 }
@@ -447,6 +447,8 @@ async function captureWithCountdown() {
   if (state[currentTarget].img && !confirm(`Góc ${currentTarget} đã có ảnh. Chụp đè?`)) return;
   isCounting = true; updateProgress();
   setStepBar(1);
+  try { if (navigator.vibrate) navigator.vibrate(40); } catch {} // rung xác nhận đã nhận thao tác
+  if (cd) cd.textContent = "…";
   try {
     for (const s of ["3", "2", "1"]) {
       if (cd) cd.textContent = s;
@@ -489,7 +491,14 @@ async function captureWithCountdown() {
   }
   updateProgress();
 }
-// khung hình toàn pixel trống/đen -> báo rõ thay vì lưu ảnh rỗng
+// Bấm là có ảnh: mở hộp tải ảnh của đúng góc đang chụp (dự phòng khi camera lỗi)
+function uploadForCurrent() {
+  try {
+    const i = el("file-" + currentTarget);
+    if (i) i.click();
+    else alert("Khung tải ảnh chưa sẵn sàng, tải lại trang giúp mình.");
+  } catch { alert("Khung tải ảnh chưa sẵn sàng, tải lại trang giúp mình."); }
+}
 function isCanvasBlank(canvas) {
   try {
     const x = canvas.getContext("2d", { willReadFrequently: true });
