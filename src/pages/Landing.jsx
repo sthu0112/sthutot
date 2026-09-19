@@ -527,8 +527,8 @@ export default function Landing() {
           </motion.div>
           <div className="grid md:grid-cols-2 gap-4 mt-10">
             {[
-              { img: '/img/rau-xanh.jpg', tag: '18 món ăn', t: 'Dinh dưỡng cho da', d: 'Nên ăn gì, hạn chế gì và vì sao — có ảnh từng món.', to: '/cham-soc-tu-nhien' },
-              { img: '/img/nha-dam.jpg', tag: '11 liệu pháp', t: 'Thiên nhiên tự làm', d: 'Công dụng, hiệu quả và từng bước tự làm tại nhà.', to: '/cham-soc-tu-nhien?tab=thien' },
+              { img: '/img/rau-xanh.jpg', tag: '100 món ăn', t: 'Dinh dưỡng cho da', d: 'Nên ăn gì, hạn chế gì và vì sao — có ảnh từng món.', to: '/cham-soc-tu-nhien' },
+              { img: '/img/nha-dam.jpg', tag: '100 liệu pháp', t: 'Thiên nhiên tự làm', d: 'Công dụng, hiệu quả và từng bước tự làm tại nhà.', to: '/cham-soc-tu-nhien?tab=thien' },
             ].map((c, i) => (
               <motion.a
                 key={c.t} href={c.to}

@@ -63,7 +63,11 @@ export default function ThienNhien() {
   const [params] = useSearchParams()
   const [tab, setTab] = useState(params.get('tab') === 'thien' ? 'thien' : 'an')
   const [filter, setFilter] = useState('all')
-  const shown = filter === 'all' ? FOODS : FOODS.filter((f) => (filter === 'nen') === f.nen)
+  const [q, setQ] = useState('')
+  const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd')
+  const matchQ = (t) => !q.trim() || norm(t).includes(norm(q.trim()))
+  const shownFoods = FOODS.filter((f) => (filter === 'all' || (filter === 'nen') === f.nen) && matchQ(f.ten + ' ' + f.viSao))
+  const shownNat = NATURALS.filter((n) => matchQ(n.ten + ' ' + n.congDung))
 
   return (
     <div className="min-h-screen w-full bg-snow text-forest font-sans">
@@ -93,7 +97,7 @@ export default function ThienNhien() {
 
         {tab === 'an' && (
           <>
-            <div className="flex gap-2 mt-6 overflow-x-auto pb-1">
+            <div className="flex gap-2 mt-6 overflow-x-auto pb-1 items-center">
               {[['all', 'Tất cả'], ['nen', 'Nên ăn'], ['hanche', 'Hạn chế']].map(([k, label]) => (
                 <button
                   key={k}
@@ -103,17 +107,31 @@ export default function ThienNhien() {
                   {label}
                 </button>
               ))}
+              <input
+                value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm món… (VD: nghệ, cá, trà)"
+                className="ml-auto min-w-[180px] flex-1 sm:flex-none sm:w-64 px-4 py-2 rounded-pill bg-white border border-forest/20 text-[13px] focus:outline-none focus:ring-2 focus:ring-forest/30"
+              />
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-              {shown.map((f, i) => <FoodCard key={f.key} f={f} i={i} />)}
+            <p className="text-[13px] text-pewter mt-2">Đang hiện {shownFoods.length}/{FOODS.length} món ăn</p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+              {shownFoods.map((f, i) => <FoodCard key={f.key} f={f} i={i} />)}
             </div>
           </>
         )}
 
         {tab === 'thien' && (
-          <div className="grid md:grid-cols-2 gap-4 mt-6">
-            {NATURALS.map((n, i) => <NaturalCard key={n.key} n={n} i={i} />)}
-          </div>
+          <>
+            <div className="flex gap-2 mt-6 items-center">
+              <input
+                value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm liệu pháp… (VD: mật ong, xông, đắp)"
+                className="flex-1 sm:flex-none sm:w-80 px-4 py-2 rounded-pill bg-white border border-forest/20 text-[13px] focus:outline-none focus:ring-2 focus:ring-forest/30"
+              />
+            </div>
+            <p className="text-[13px] text-pewter mt-2">Đang hiện {shownNat.length}/{NATURALS.length} liệu pháp</p>
+            <div className="grid md:grid-cols-2 gap-4 mt-4">
+              {shownNat.map((n, i) => <NaturalCard key={n.key} n={n} i={i} />)}
+            </div>
+          </>
         )}
 
         <p className="text-[12px] text-pewter mt-8">Ảnh minh họa: Wikimedia Commons (miễn phí bản quyền). Món ăn/liệu pháp chỉ hỗ trợ — da bất thường kéo dài nên đi khám.</p>
