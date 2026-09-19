@@ -3,11 +3,54 @@ import { SPECIALTIES, guessSpecialtyFromText, specialtyBySlug } from '../data/co
 
 const LS_THREADS = 'dermacare_ai_threads_v1'
 
+// Từ khóa NGOÀI chủ đề web (học tập, code, tài chính, thể thao, game, chính trị...).
+// Chỉ chặn khi chắc chắn lạc đề + không dính từ khóa da liễu/đặt lịch.
+const OFFTOPIC_KEYS = [
+  'toán', 'vật lý', 'hóa học', 'ngữ văn', 'văn học', 'lịch sử', 'địa lý', 'tiếng anh',
+  'phương trình', 'tích phân', 'đạo hàm', 'hình học', 'giải bài', 'làm hộ bài',
+  'code', 'python', 'java', 'javascript', 'lập trình', 'html', 'sql',
+  'chứng khoán', 'cổ phiếu', 'bitcoin', 'tiền ảo', 'forex',
+  'bóng đá', 'ngoại hạng', 'world cup', 'cá độ',
+  'liên quân', 'pubg', 'free fire', 'game ',
+  'bầu cử', 'tổng thống', 'chính trị', 'đảng ',
+  'thời tiết', 'tỷ giá', 'giá vàng', 'xổ số', 'lô đề',
+  'phim ', 'ca sĩ', 'diễn viên', 'nhạc ',
+  'ô tô', 'xe máy', 'nhà đất', 'bất động sản',
+  'nấu ăn', 'công thức nấu', 'du lịch', 'vé máy bay', 'khách sạn',
+]
+const INTOPIC_KEYS = [
+  'da', 'mụn', 'nám', 'ngứa', 'dị ứng', 'khám', 'bác sĩ', 'đặt lịch', 'phòng khám',
+  'thuốc', 'kem', 'dưỡng', 'chống nắng', 'tóc', 'dị ứng', 'sẹo', 'thâm', 'nốt ruồi',
+  'viêm', 'nấm', 'rôm', 'chàm', 'vảy', 'đỏ', 'rát', 'khô', 'dầu', 'nhờn', 'lão hóa',
+  'soi da', 'cẩm nang', 'bảo hiểm y tế', 'giá khám', 'địa chỉ',
+]
+
+function isOffTopic(text = '') {
+  const t = ` ${text.toLowerCase().trim()} `
+  if (t.trim().length < 8) return false // tin quá ngắn (tuổi, vâng...) -> cho qua để hỏi tiếp
+  if (INTOPIC_KEYS.some((k) => t.includes(k))) return false
+  return OFFTOPIC_KEYS.some((k) => t.includes(k))
+}
+
+function offTopicReply() {
+  return {
+    reply: 'Mình là trợ lý da liễu nên chỉ tư vấn được chuyện về da, đặt lịch khám, soi da và cẩm nang thôi. Bạn đang gặp vấn đề da gì (ở vị trí nào, bao lâu rồi, có ngứa/đau không)? Kể mình nghe nhé.',
+    level: 'none',
+    suggested_specialty: null,
+    skintype: null,
+    quick: ['Tôi bị mụn', 'Da bị ngứa', 'Đặt lịch khám'],
+    sources: [],
+    source: 'offline',
+  }
+}
+
 // Gọi Edge Function ai-chat (key giữ server-side).
 // - timeout 25s + retry 1 lần: mạng chập chờn vẫn trả lời được
 // - hết hạn phiên (401/token hết hạn): báo rõ để đăng nhập lại
 // - mọi lỗi khác: dự phòng offline, KHÔNG bao giờ treo/không trả lời
 export async function askAI(messages) {
+  const lastUserText = messages.filter((m) => m.role === 'user').slice(-1)[0]?.content || ''
+  if (isOffTopic(lastUserText)) return offTopicReply()
   if (!isDemoMode && supabase) {
     try {
       const data = await invokeFunction('ai-chat', { messages: messages.slice(-12) }, { timeoutMs: 30000, retries: 2 })

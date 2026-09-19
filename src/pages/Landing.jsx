@@ -6,6 +6,7 @@ import { useAuth, homeByRole } from '../contexts/AuthContext'
 import { playClick } from '../utils/sound'
 import { AIChatWidget } from './AIChat'
 import { SPECIALTIES } from '../data/content'
+import Logo from '../components/Logo'
 
 function FeatureCard({ icon: Icon, title, desc, delay = 0, href = null, cta = null }) {
   return (
@@ -89,6 +90,7 @@ export default function Landing() {
       >
         <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
+            <Logo size={38} />
             <span className="font-sans font-semibold tracking-tight text-[18px]">DermaCare</span>
             <span className="w-2 h-2 rounded-full bg-forest" />
           </div>
@@ -510,7 +512,7 @@ export default function Landing() {
             className="flex flex-col md:flex-row md:items-center gap-4 justify-between"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-lime text-forest flex items-center justify-center"><Stethoscope size={19} strokeWidth={1.5} /></div>
+              <Logo size={40} rounded="rounded-2xl" />
               <div>
                 <div className="font-sans font-semibold tracking-tight text-[18px]">DermaCare</div>
                 <div className="font-sans text-[13px] opacity-70">Làn da khỏe, bắt đầu từ một lịch hẹn.</div>

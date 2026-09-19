@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../components/Toast'
 import { playClick } from '../utils/sound'
+import Logo from '../components/Logo'
 
 const container = { hidden: {}, visible: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } } }
 const item = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } } }
@@ -81,6 +82,7 @@ export default function Login() {
         {/* left - brand */}
         <motion.div variants={container} initial="hidden" animate="visible" className="bg-forest text-snow p-8 md:p-10 flex flex-col">
           <motion.div variants={item} className="flex items-center gap-2">
+            <Logo size={34} />
             <span className="font-medium tracking-tight text-[18px]">DermaCare</span>
             <span className="w-2 h-2 rounded-full bg-lime" />
           </motion.div>

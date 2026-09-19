@@ -1,6 +1,7 @@
 import { NavLink, Link } from 'react-router-dom'
 import { LayoutDashboard, Users, UserPlus, ClipboardList, Images, Search, BarChart3, Settings, LogOut, X, Calendar, ShieldCheck, Stethoscope, ScanFace } from 'lucide-react'
 import { useAuth, homeByRole } from '../contexts/AuthContext'
+import Logo from './Logo'
 
 const nav = [
   { to:'/dashboard', label:'Dashboard', icon: LayoutDashboard },
@@ -20,7 +21,7 @@ export default function Sidebar({ collapsed=false, onClose }) {
     <aside className={`bg-white border-r border-slate-200 flex flex-col ${collapsed ? 'w-full' : 'w-[260px] shrink-0'} min-h-screen`}>
       <div className="px-5 py-5 border-b border-slate-100 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center text-white"><ClipboardList size={18} /></div>
+          <Logo size={36} rounded="rounded-xl" />
           <div>
             <div className="font-bold text-slate-900 leading-none">DERMA CARE</div>
             <div className="text-[11px] tracking-widest text-teal-600 font-medium">SECURE RECORDS</div>

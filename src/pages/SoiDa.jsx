@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import Logo from '../components/Logo'
 import '../soida-scope.css'
 
 const W = (fn) => (...a) => { try { return window[fn]?.(...a) } catch {} }
@@ -109,7 +110,7 @@ export default function SoiDa() {
     <div className="soida-scope min-h-screen bg-snow text-forest">
       <header className="sticky top-0 z-30 bg-snow/95 backdrop-blur border-b border-forest/10">
         <div className="w-full px-4 sm:px-8 h-16 flex items-center justify-between gap-2">
-          <Link to="/" className="flex items-center gap-2 font-semibold text-[17px] sm:text-[18px] tracking-tight shrink-0">DermaCare <span className="w-2 h-2 rounded-full bg-forest" /></Link>
+          <Link to="/" className="flex items-center gap-2 font-semibold text-[17px] sm:text-[18px] tracking-tight shrink-0"><Logo size={32} /> DermaCare <span className="w-2 h-2 rounded-full bg-forest" /></Link>
           <nav className="hidden md:flex items-center gap-6 text-[15px]">
             <Link to="/" className="hover:opacity-70">Trang chủ</Link>
             <Link to="/dat-lich" className="hover:opacity-70">Đặt lịch</Link>
