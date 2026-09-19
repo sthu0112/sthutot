@@ -46,22 +46,24 @@ function initDermaCare() {
   const sel = document.getElementById("camDevice");
   if (sel) sel.addEventListener("change", () => { if (camStream) openCamera(); });
   initDevicePrompt();
-  // glossary: bấm vào thuật ngữ -> popup giải thích (áp dụng cả nội dung thêm sau)
-  document.addEventListener("click", e => {
-    const t = e.target.closest ? e.target.closest(".g") : null;
-    const pop = document.getElementById("gpop");
-    if (!pop) return;
-    if (t && GLOSS[t.dataset.t]) {
-      e.preventDefault();
-      document.getElementById("gpopBody").innerHTML = `<b>${GLOSS[t.dataset.t][0]}</b><br/>${GLOSS[t.dataset.t][1]}`;
-      pop.style.display = "block";
-      const r = t.getBoundingClientRect();
-      pop.style.left = Math.min(window.innerWidth - 320, Math.max(8, r.left)) + "px";
-      pop.style.top = (r.bottom + window.scrollY + 8) + "px";
-    } else if (!e.target.closest || !e.target.closest("#gpop")) {
-      pop.style.display = "none";
-    }
-  });
+  // glossary: bấm vào thuật ngữ -> popup giải thích (gỡ handler cũ để remount React không bind trùng)
+  document.removeEventListener("click", __soidaDocClick);
+  document.addEventListener("click", __soidaDocClick);
+}
+function __soidaDocClick(e) {
+  const t = e.target.closest ? e.target.closest(".g") : null;
+  const pop = document.getElementById("gpop");
+  if (!pop) return;
+  if (t && GLOSS[t.dataset.t]) {
+    e.preventDefault();
+    document.getElementById("gpopBody").innerHTML = `<b>${GLOSS[t.dataset.t][0]}</b><br/>${GLOSS[t.dataset.t][1]}`;
+    pop.style.display = "block";
+    const r = t.getBoundingClientRect();
+    pop.style.left = Math.min(window.innerWidth - 320, Math.max(8, r.left)) + "px";
+    pop.style.top = (r.bottom + window.scrollY + 8) + "px";
+  } else if (!e.target.closest || !e.target.closest("#gpop")) {
+    pop.style.display = "none";
+  }
 }
 if (typeof window !== "undefined") {
   if (document.readyState === "loading") window.addEventListener("DOMContentLoaded", initDermaCare);
@@ -106,7 +108,7 @@ const GUIDE = {
   right_cheek: "Bước 3/3 — Má Phải: quay mặt sang PHẢI khung hình"
 };
 // Link công khai cho bạn bè test (đổi mỗi khi tạo tunnel mới) — dùng cho QR sang điện thoại
-const PUBLIC_URL = "https://reading-balance-thousand-part.trycloudflare.com";
+const PUBLIC_URL = "https://dermacare-one.vercel.app/soi-da";
 const GMAIN = {
   left_cheek: ["BƯỚC 1/3", "↰ Quay mặt sang TRÁI khung hình", "Để lộ má trái • Camera tự bám theo mặt • Đợi ✅ OK rồi bấm chụp (đếm 3-2-1)"],
   frontal: ["BƯỚC 2/3", "⬆ Nhìn thẳng vào camera", "Cân 2 tai • Mắt nhìn thẳng • Đợi ✅ OK rồi bấm chụp"],
@@ -183,25 +185,37 @@ function pipeTo(i) {
 function pipeDone() { document.querySelectorAll("#pipeSteps .pstep").forEach(s => { s.className = "pstep done"; }); }
 async function openCamera() {
   const st = el("camStatus"), v = el("camVideo");
+  const say = t => { if (st) st.textContent = t; };
   try {
     if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1")
-      throw new Error("Cần HTTPS hoặc localhost mới mở được camera.");
-    if (!navigator.mediaDevices?.getUserMedia) throw new Error("Trình duyệt không hỗ trợ camera.");
+      throw new Error("Trang cần HTTPS mới mở được camera.");
+    if (!navigator.mediaDevices?.getUserMedia) throw new Error("Trình duyệt này không hỗ trợ camera (hãy dùng Chrome/Safari mới).");
     stopCamera(true);
     const devId = el("camDevice")?.value || "";
-    const cons = devId
-      ? { video: { deviceId: { exact: devId }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }
-      : { video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
-    camStream = await navigator.mediaDevices.getUserMedia(cons);
+    // Thử dần: đúng camera đã chọn -> camera trước -> bất kỳ camera nào (không bao giờ chết vì constraint)
+    const tries = [];
+    if (devId) tries.push({ video: { deviceId: { exact: devId } }, audio: false });
+    tries.push({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+    tries.push({ video: true, audio: false });
+    let err = null;
+    for (const cons of tries) {
+      try { camStream = await navigator.mediaDevices.getUserMedia(cons); err = null; break; }
+      catch (e) { err = e; camStream = null; }
+    }
+    if (!camStream) {
+      if (err && (err.name === "NotAllowedError" || err.name === "SecurityError"))
+        throw new Error("Bạn đã chặn quyền camera. Bấm biểu tượng 🔒/🎥 trên thanh địa chỉ → cho phép camera → tải lại trang.");
+      throw new Error("Không tìm thấy camera khả dụng (" + (err ? err.name : "unknown") + ").");
+    }
     v.srcObject = camStream;
-    await v.play().catch(() => {});
+    try { await v.play(); } catch (e) { /* một số máy cần chạm mới play, vẫn tiếp tục */ }
     lastTrackLm = null; smoothBox = null;
     startLiveLoop();
-    if (st) st.textContent = "✅ Camera đã mở — khung hình tự bám theo mặt bạn.";
+    say("✅ Camera đã mở — khung hình tự bám theo mặt bạn.");
     try { await listCameras(); } catch {}
     setStepBar(1);
   } catch (e) {
-    if (st) st.textContent = "❌ Không mở được camera: " + e.message + " (kiểm tra quyền camera / dùng http://localhost:8000).";
+    say("❌ " + e.message);
   }
   updateProgress();
 }

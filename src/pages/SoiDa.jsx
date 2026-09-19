@@ -10,6 +10,21 @@ const W = (fn) => (...a) => { try { return window[fn]?.(...a) } catch {} }
 export default function SoiDa() {
   useEffect(() => {
     let dead = false
+    // Hiện mọi lỗi JS lên khung trạng thái camera — không còn lỗi thầm lặng
+    const showErr = (msg) => {
+      try {
+        const st = document.getElementById('camStatus')
+        if (st && msg) st.textContent = '⚠️ ' + msg
+      } catch {}
+    }
+    const onErr = (e) => {
+      const f = e?.filename || ''
+      if (/^(chrome|moz)-extension:/.test(f)) return // bỏ qua lỗi extension rác
+      showErr(e?.message || 'Lỗi không rõ, tải lại trang giúp mình')
+    }
+    const onRej = (e) => showErr(e?.reason?.message || 'Lỗi mạng, kiểm tra kết nối giúp mình')
+    window.addEventListener('error', onErr)
+    window.addEventListener('unhandledrejection', onRej)
     const load = (src) => new Promise((res, rej) => {
       const s = document.createElement('script')
       s.src = src; s.async = true
@@ -24,12 +39,21 @@ export default function SoiDa() {
           await load('/soi-da/app.js')
           window.__soidaEngine = true
         }
+        if (typeof window.openCamera !== 'function' || typeof window.initDermaCare !== 'function') {
+          showErr('Chưa tải được engine (mất mạng?). Tải lại trang giúp mình.')
+          return
+        }
         if (!dead) window.initDermaCare?.()
-      } catch {}
+      } catch {
+        showErr('Chưa tải được engine (mất mạng?). Tải lại trang giúp mình.')
+      }
     })()
     return () => {
       dead = true
+      window.removeEventListener('error', onErr)
+      window.removeEventListener('unhandledrejection', onRej)
       try { window.stopCamera && window.stopCamera(true) } catch {}
+      try { window.__soidaInit = false } catch {} // mount sau bind lại từ đầu
     }
   }, [])
 
