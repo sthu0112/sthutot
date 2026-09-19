@@ -186,8 +186,12 @@ export default function AIChatPanel({ compact = false }) {
                 <div className="mt-1.5 text-[11px] opacity-70">Dựa trên: {m.sources.join(' · ')}</div>
               )}
               {m.role === 'assistant' && <AssistantCards m={m} threadMessages={messages} />}
-              {m.role === 'assistant' && m.source === 'offline' && i > 0 && (
-                <div className="text-[11px] opacity-60 mt-1">Chế độ offline — AI đầy đủ cần cấu hình key</div>
+              {m.role === 'assistant' && m.source === 'offline' && i > 0 && !m.authExpired && (
+                <div className="text-[11px] opacity-60 mt-1">
+                  {m.offlineReason === 'timeout' && 'Mạng chậm quá — bạn bấm gửi lại giúp mình nhé'}
+                  {m.offlineReason === 'config' && 'Chế độ offline — AI đầy đủ cần cấu hình key'}
+                  {(!m.offlineReason || m.offlineReason === 'busy') && 'AI đang bận, thử lại sau 1–2 phút nhé'}
+                </div>
               )}
             </div>
           </div>

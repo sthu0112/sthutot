@@ -10,7 +10,7 @@ const LS_THREADS = 'dermacare_ai_threads_v1'
 export async function askAI(messages) {
   if (!isDemoMode && supabase) {
     try {
-      const data = await invokeFunction('ai-chat', { messages: messages.slice(-12) }, { timeoutMs: 25000, retries: 1 })
+      const data = await invokeFunction('ai-chat', { messages: messages.slice(-12) }, { timeoutMs: 30000, retries: 2 })
       if (data?.reply) {
         return {
           reply: data.reply,
@@ -36,10 +36,19 @@ export async function askAI(messages) {
           authExpired: true,
         }
       }
+      // Lý do thật để UI báo đúng (timeout/bận/chưa cấu hình) thay vì đoán bừa
+      const offlineReason =
+        e?.code === 'timeout' ? 'timeout' :
+        /chưa được cấu hình|503/i.test(e?.message || '') ? 'config' : 'busy'
       console.warn('ai-chat fallback (offline):', e.message)
+      const fb = offlineReply(messages)
+      fb.offlineReason = offlineReason
+      return fb
     }
   }
-  return offlineReply(messages)
+  const fb = offlineReply(messages)
+  fb.offlineReason = 'config'
+  return fb
 }
 
 function offlineReply(messages) {

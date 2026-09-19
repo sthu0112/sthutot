@@ -1,26 +1,32 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ShieldCheck, Database, Image as ImageIcon, ClipboardList, Search, Users, Stethoscope, ArrowRight, Check, FileText, Activity, HeartPulse, Layers, Clock, Award, Lock, Baby, Smile, User, HeartHandshake, ChevronDown, Star, Phone, MessageCircle, CalendarCheck, Sparkles } from 'lucide-react'
+import { ShieldCheck, Database, Image as ImageIcon, ClipboardList, Search, Users, Stethoscope, ArrowRight, Check, FileText, Activity, HeartPulse, Layers, Clock, Award, Lock, Baby, Smile, User, HeartHandshake, ChevronDown, Star, Phone, MessageCircle, CalendarCheck, Sparkles, ScanFace } from 'lucide-react'
 import { useAuth, homeByRole } from '../contexts/AuthContext'
 import { playClick } from '../utils/sound'
 import { AIChatWidget } from './AIChat'
 import { SPECIALTIES } from '../data/content'
 
-function FeatureCard({ icon: Icon, title, desc, delay = 0 }) {
+function FeatureCard({ icon: Icon, title, desc, delay = 0, href = null, cta = null }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-stone rounded-2xl p-6 h-full"
+      className="bg-stone rounded-2xl p-6 h-full hover:shadow-card transition-shadow"
     >
       <div className="w-10 h-10 rounded-full bg-forest text-snow flex items-center justify-center">
         <Icon size={18} strokeWidth={1.5} />
       </div>
       <h3 className="font-sans font-semibold text-forest mt-4 text-[18px] tracking-[-0.18px]">{title}</h3>
       <p className="font-sans text-[16px] text-pewter mt-1.5 leading-[1.5]">{desc}</p>
+      {href && (
+        <a href={href} className="inline-flex items-center gap-1 mt-3 font-sans text-[14px] font-medium text-forest underline underline-offset-4 decoration-[1.5px]">
+          {cta || 'Dùng ngay'} <ArrowRight size={14} />
+        </a>
+      )}
     </motion.div>
   )
 }
@@ -146,11 +152,11 @@ export default function Landing() {
                 transition={{ delay: 0.32, duration: 0.6 }}
                 className="flex flex-wrap gap-4 mt-8"
               >
-                <Link to="/dat-lich" onClick={() => playClick('success')} className="inline-flex items-center gap-2 px-6 py-4 rounded-pill bg-forest text-snow text-[16px] font-sans hover:opacity-90">
+                <Link to="/dat-lich" onClick={() => playClick('success')} className="inline-flex items-center gap-2 px-6 py-4 rounded-pill bg-forest text-snow text-[16px] font-sans hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-transform">
                   Đặt lịch khám <ArrowRight size={16} strokeWidth={1.5} />
                 </Link>
-                <Link to="/login" onClick={() => playClick('tap')} className="inline-flex items-center gap-2 px-6 py-4 rounded-pill bg-snow border-[1.5px] border-forest text-forest text-[16px] font-sans hover:opacity-80">Xem demo</Link>
-                <a href="/soi-da/index.html" onClick={() => playClick('tap')} className="inline-flex items-center gap-2 px-6 py-4 rounded-pill bg-lime text-forest text-[16px] font-sans hover:opacity-80">Soi da AI</a>
+                <Link to="/login" onClick={() => playClick('tap')} className="inline-flex items-center gap-2 px-6 py-4 rounded-pill bg-snow border-[1.5px] border-forest text-forest text-[16px] font-sans hover:opacity-80 hover:scale-[1.02] active:scale-[0.98] transition-transform">Xem demo</Link>
+                <a href="/soi-da/index.html" onClick={() => playClick('success')} className="inline-flex items-center gap-2 px-8 py-5 rounded-pill bg-lime text-forest text-[18px] font-sans font-semibold shadow-lg hover:opacity-90 hover:scale-[1.03] active:scale-[0.98] transition-transform"><ScanFace size={20} strokeWidth={2} /> Soi da AI</a>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -167,8 +173,8 @@ export default function Landing() {
             {/* Preview card */}
             <motion.div
               initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              animate={{ opacity: 1, y: [0, -7, 0] }}
+              transition={{ opacity: { delay: 0.25, duration: 0.8, ease: [0.22, 1, 0.36, 1] }, y: { delay: 1.2, duration: 6, repeat: Infinity, ease: 'easeInOut' } }}
               className="relative lg:pl-6"
             >
               <div className="bg-stone rounded-[32px] p-4">
@@ -200,8 +206,21 @@ export default function Landing() {
                     <div className="mt-4 rounded-2xl bg-stone overflow-hidden">
                       <div className="px-3 py-2 font-sans text-[12px] font-medium">Timeline — 2026-08-10 → 2026-08-24 → 2026-09-12</div>
                       <div className="p-3 flex gap-2">
-                        <div className="w-20 h-14 rounded-lg bg-frosted" />
-                        <div className="w-20 h-14 rounded-lg bg-frosted" />
+                        <svg viewBox="0 0 80 56" className="w-20 h-14 rounded-lg bg-forest" role="img" aria-label="Ảnh quét soi da mẫu">
+                          <ellipse cx="40" cy="30" rx="20" ry="24" fill="none" stroke="#d3fa99" strokeWidth="1.6" strokeDasharray="4 3" />
+                          <circle cx="33" cy="26" r="2.2" fill="#f87171" />
+                          <circle cx="46" cy="33" r="2.8" fill="#f87171" />
+                          <circle cx="40" cy="42" r="1.8" fill="#c084fc" />
+                          <rect x="29" y="21" width="9" height="9" fill="none" stroke="#f87171" strokeWidth="1.4" />
+                          <rect x="41" y="28" width="11" height="11" fill="none" stroke="#f87171" strokeWidth="1.4" />
+                        </svg>
+                        <svg viewBox="0 0 80 56" className="w-20 h-14 rounded-lg bg-forest" role="img" aria-label="Biểu đồ kết quả mẫu">
+                          <circle cx="24" cy="28" r="14" fill="none" stroke="#d3fa99" strokeWidth="5" strokeDasharray="52 36" transform="rotate(-90 24 24)" />
+                          <circle cx="24" cy="28" r="14" fill="none" stroke="#f87171" strokeWidth="5" strokeDasharray="18 70" strokeDashoffset="-52" transform="rotate(-90 24 24)" />
+                          <rect x="44" y="14" width="28" height="6" rx="3" fill="#d3fa99" />
+                          <rect x="44" y="25" width="20" height="6" rx="3" fill="#5eead4" />
+                          <rect x="44" y="36" width="24" height="6" rx="3" fill="#f0fdf4" opacity="0.7" />
+                        </svg>
                         <div className="flex-1 font-sans text-[14px]"><span className="font-medium">Mụn trứng cá trung bình</span><br /><span className="text-pewter">Adapalene + Doxycycline</span></div>
                       </div>
                     </div>
@@ -330,7 +349,7 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-4 mt-10">
             <FeatureCard icon={ClipboardList} title="Hồ sơ & mã duy nhất" desc="Tự sinh DERM-YYYY-XXXXXX, không trùng, sao chép 1 chạm, tìm kiếm tức thì." delay={0.05} />
             <FeatureCard icon={Activity} title="Thăm khám có cấu trúc" desc="Lý do, triệu chứng, khám da, chẩn đoán, điều trị, tái khám — đầy đủ." delay={0.1} />
-            <FeatureCard icon={ImageIcon} title="Hình ảnh riêng tư" desc="JPG/PNG/WEBP/PDF ≤8MB, lưu đúng lượt khám với liên kết có thời hạn." delay={0.15} />
+            <FeatureCard icon={ScanFace} title="Soi da AI" desc="Chụp 3 góc mặt, AI khoanh vùng mụn — thâm — sắc tố, đối chứng đa góc trước khi kết luận." delay={0.15} href="/soi-da/index.html" cta="Quét da ngay" />
             <FeatureCard icon={Search} title="Tìm kiếm toàn cục" desc="Ctrl+K tìm bằng mã/tên/SĐT, ưu tiên mã hồ sơ chính xác." delay={0.05} />
             <FeatureCard icon={Users} title="Phân quyền" desc="admin/doctor/patient + RLS ở DB, không chỉ frontend." delay={0.1} />
             <FeatureCard icon={FileText} title="Xuất & in" desc="In PDF hồ sơ, kiểm tra quyền trước khi xuất." delay={0.15} />
