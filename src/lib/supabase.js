@@ -28,7 +28,7 @@ export const isSupabaseConfigured = !demoMode
 // - Dùng token phiên đăng nhập nếu có (thành viên), không thì anon key.
 // - Lỗi 'auth': phiên hết hạn/key sai -> UI yêu cầu đăng nhập lại.
 // - Lỗi 'timeout'/'network'/'server': UI retry hoặc dùng dự phòng offline.
-export async function invokeFunction(name, body, { timeoutMs = 25000, retries = 1 } = {}) {
+export async function invokeFunction(name, body, { timeoutMs = 25000, retries = 1, retryServer = true } = {}) {
   if (demoMode || !supabase) {
     const e = new Error('Chưa cấu hình Supabase')
     e.code = 'config'
@@ -78,6 +78,7 @@ export async function invokeFunction(name, body, { timeoutMs = 25000, retries = 
     } catch (e) {
       clearTimeout(timer)
       if (e?.code === 'auth') throw e
+      if (e?.code === 'server' && !retryServer) throw e // 429/5xx: retry tay bằng nút Thử lại, không dội server
       lastErr = e?.name === 'AbortError'
         ? Object.assign(new Error('Quá thời gian chờ, đang thử lại…'), { code: 'timeout' })
         : Object.assign(new Error(e?.message || 'Lỗi mạng'), { code: 'network' })

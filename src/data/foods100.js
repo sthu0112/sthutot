@@ -88,7 +88,6 @@ export const FOODS = [
   { key: 'thuoc-la', ten: 'Thuốc lá', img: IMG('thuoc-la'), nen: false, viSao: 'Kẻ thù số 1 của da: nhăn, sạm, lâu lành — bỏ càng sớm càng tốt.', nguon: 'WHO' },
   { key: 'kho-bo', ten: 'Khô bò, đồ khô mặn', img: IMG('kho-bo'), nen: false, viSao: 'Muối rất cao gây tích nước, sưng mặt.', nguon: 'WHO' },
   { key: 'nuoc-mam', ten: 'Nước mắm mặn', img: IMG('nuoc-mam'), nen: false, viSao: 'Chấm ít thôi — ăn mặn da dễ sưng, nổi mụn.', nguon: 'WHO' },
-  { key: 'dua-muoi', ten: 'Dưa/cà muối', img: IMG('dua-muoi'), nen: false, viSao: 'Muối cao, ăn ít, người viêm da nên kiêng lúc bùng.', nguon: 'WHO' },
   { key: 'mi-cay', ten: 'Mì cay', img: IMG('mi-cay'), nen: false, viSao: 'Cay + nóng + dầu — combo bùng mụn, đau dạ dày.', nguon: 'WHO' },
   { key: 'lau-cay', ten: 'Lẩu cay', img: IMG('lau-cay'), nen: false, viSao: 'Ăn nóng cay liên tục dễ đỏ mặt, nổi mụn — ăn thanh đạm lại.', nguon: 'WHO' },
   { key: 'ot-hiem', ten: 'Ớt hiểm', img: IMG('ot-hiem'), nen: false, viSao: 'Ăn nhiều cay quá gây đỏ bừng, rát dạ dày — ăn the thé vừa phải.', nguon: 'WHO' },

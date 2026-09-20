@@ -22,7 +22,8 @@ const INTOPIC_KEYS = [
   'da', 'mụn', 'nám', 'ngứa', 'dị ứng', 'khám', 'bác sĩ', 'đặt lịch', 'phòng khám',
   'thuốc', 'kem', 'dưỡng', 'chống nắng', 'tóc', 'dị ứng', 'sẹo', 'thâm', 'nốt ruồi',
   'viêm', 'nấm', 'rôm', 'chàm', 'vảy', 'đỏ', 'rát', 'khô', 'dầu', 'nhờn', 'lão hóa',
-  'soi da', 'cẩm nang', 'bảo hiểm y tế', 'giá khám', 'địa chỉ',
+  'soi da', 'cẩm nang', 'bảo hiểm y tế', 'giá khám', 'địa chỉ', 'dinh dưỡng', 'thiên nhiên',
+  'ăn uống', 'món ăn', 'giờ khám', 'hotline', '1900', 'tài khoản', 'đăng ký', 'đăng nhập',
 ]
 
 function isOffTopic(text = '') {
@@ -44,6 +45,71 @@ function offTopicReply() {
   }
 }
 
+// Hỏi về web (đặt lịch, soi da, giá, giờ...) -> trả lời NGAY từ kiến thức có sẵn,
+// không cần chờ AI, không bao giờ rớt mạng
+const SITE_QA = [
+  {
+    keys: ['đặt lịch', 'dat lich', 'hẹn khám', 'đăng ký khám'],
+    reply: 'Đặt lịch ở trang “Đặt lịch khám”: chọn nhóm bệnh → chọn bác sĩ + giờ (9 khung/ngày) → nhập thông tin → xác nhận. Xong trong 5 phút, bác sĩ xác nhận trong 15 phút giờ hành chính.',
+    quick: ['Đặt lịch khám', 'Giá khám bao nhiêu', 'Giờ khám thế nào'],
+  },
+  {
+    keys: ['soi da', 'quét da', 'phân tích da', 'chụp mặt', 'chụp da'],
+    reply: 'Vào trang “Soi da AI”: mở camera, chụp 3 góc (má trái, chính diện, má phải), AI khoanh vùng mụn — thâm — sắc tố rồi cho điểm từng vùng. Nhớ tắt filter làm đẹp và chụp chỗ đủ sáng nhé.',
+    quick: ['Mở soi da', 'Da tôi bị mụn', 'Đặt lịch khám'],
+  },
+  {
+    keys: ['cẩm nang', 'bài viết', 'đọc về'],
+    reply: 'Trang “Cẩm nang” có hơn 20 bài: bệnh da, cách chăm sóc, dinh dưỡng. Mỗi bài chia mục rõ, chữ gạch đứt là thuật ngữ — bấm vào là hiện nghĩa.',
+    quick: ['Dinh dưỡng cho da', 'Da tôi bị mụn', 'Đặt lịch khám'],
+  },
+  {
+    keys: ['dinh dưỡng', 'ăn gì', 'thiên nhiên', 'đắp mặt', 'món ăn'],
+    reply: 'Trang “Dinh dưỡng & Thiên nhiên” có 100 món ăn (nên ăn/hạn chế + vì sao) và 100 liệu pháp tự làm tại nhà (công dụng + từng bước + lưu ý), ảnh thật từng món.',
+    quick: ['Da tôi bị mụn', 'Đặt lịch khám', 'Hỏi chuyện khác'],
+  },
+  {
+    keys: ['giá', 'bao nhiêu tiền', 'chi phí', 'phí khám'],
+    reply: 'Giá khám niêm yết tại phòng khám và báo rõ trước khi xác nhận lịch. Bạn gọi hotline 1900 6368 để hỏi giá đúng nhóm bệnh của mình nhé.',
+    quick: ['Đặt lịch khám', 'Giờ khám thế nào', 'Da tôi bị mụn'],
+  },
+  {
+    keys: ['địa chỉ', 'ở đâu', 'giờ khám', 'mấy giờ', 'hotline', 'số điện thoại', 'liên hệ'],
+    reply: 'Phòng khám mở 9 khung giờ mỗi ngày. Đặt lịch online để giữ chỗ, hoặc gọi hotline 1900 6368 để được chỉ đường và tư vấn trực tiếp.',
+    quick: ['Đặt lịch khám', 'Da tôi bị mụn', 'Hỏi chuyện khác'],
+  },
+  {
+    keys: ['gags', 'điểm mụn', 'mức độ', 'triage'],
+    reply: 'Thang GAGS chấm mức độ mụn (trang Soi da dùng bản tính riêng mặt, tối đa 28 điểm): dưới 19 là nhẹ, từ 19 là trung bình nên đi khám. Mức GREEN chăm tại nhà, YELLOW nên khám, RED khám sớm.',
+    quick: ['Mở soi da', 'Đặt lịch khám', 'Da tôi bị mụn'],
+  },
+  {
+    keys: ['bác sĩ nào', 'bác sĩ giỏi', 'chọn bác sĩ'],
+    reply: 'Web có bác sĩ theo 12 nhóm bệnh (mụn, viêm da, nám, tóc...). Bạn cứ đặt lịch theo đúng nhóm bệnh của mình, hệ thống tự gợi ý bác sĩ đúng chuyên môn.',
+    quick: ['Đặt lịch khám', 'Da tôi bị mụn', 'Hỏi chuyện khác'],
+  },
+  {
+    keys: ['tài khoản', 'đăng ký', 'đăng nhập', 'quên mật khẩu'],
+    reply: 'Bấm “Đăng ký” ở góc phải, nhập SĐT là xong. Đăng nhập để xem lịch của mình, lưu hồ sơ và chat với AI đầy đủ.',
+    quick: ['Đặt lịch khám', 'Da tôi bị mụn', 'Hỏi chuyện khác'],
+  },
+]
+
+function siteReply(text = '') {
+  const t = ` ${text.toLowerCase()} `
+  const hit = SITE_QA.find((s) => s.keys.some((k) => t.includes(k)))
+  if (!hit) return null
+  return {
+    reply: hit.reply,
+    level: 'none',
+    suggested_specialty: null,
+    skintype: null,
+    quick: hit.quick,
+    sources: [],
+    source: 'site',
+  }
+}
+
 // Gọi Edge Function ai-chat (key giữ server-side).
 // - timeout 25s + retry 1 lần: mạng chập chờn vẫn trả lời được
 // - hết hạn phiên (401/token hết hạn): báo rõ để đăng nhập lại
@@ -51,9 +117,11 @@ function offTopicReply() {
 export async function askAI(messages) {
   const lastUserText = messages.filter((m) => m.role === 'user').slice(-1)[0]?.content || ''
   if (isOffTopic(lastUserText)) return offTopicReply()
+  const site = siteReply(lastUserText)
+  if (site) return site
   if (!isDemoMode && supabase) {
     try {
-      const data = await invokeFunction('ai-chat', { messages: messages.slice(-12) }, { timeoutMs: 30000, retries: 3 })
+      const data = await invokeFunction('ai-chat', { messages: messages.slice(-12) }, { timeoutMs: 30000, retries: 3, retryServer: false })
       if (data?.reply) {
         return {
           reply: data.reply,

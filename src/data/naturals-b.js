@@ -2,6 +2,13 @@
 const IMG = (n) => `/img/${n}.jpg`
 export const NATURALS_B = [
   {
+    key: 'bi-dao', ten: 'Bí đao', img: IMG('bi-dao'),
+    congDung: 'Ăn mát, nấu canh giải nhiệt; đắp ngoài ít bằng chứng cho da mặt.',
+    hieuQua: 'Chủ yếu qua ăn uống, không trị mụn/nám.',
+    cachLam: ['Nấu canh bí đao 2-3 bữa/tuần.', 'Đắp ngoài cần thử trước ở cằm.', 'Tác dụng bôi da chưa rõ.'],
+    luuY: 'Ăn nhiều gây lạnh bụng ở người yếu.',
+  },
+  {
     key: 'du-du-chin', ten: 'Đu đủ chín đắp mặt', img: IMG('du-du-chin'),
     congDung: 'Enzyme papain tẩy da chết nhẹ, sáng da.',
     hieuQua: 'Da mềm, tươi sau mỗi lần đắp.',
@@ -10,17 +17,17 @@ export const NATURALS_B = [
   },
   {
     key: 'chuoi-chin', ten: 'Chuối chín đắp mặt', img: IMG('chuoi-chin'),
-    congDung: 'Dưỡng ẩm, mềm da khô.',
-    hieuQua: 'Da mềm ngay sau đắp.',
-    cachLam: ['Nghiền nửa quả chuối chín với ít mật ong.', 'Đắp 10-15 phút rồi rửa sạch.', '1-2 lần/tuần.'],
-    luuY: 'Dị ứng latex (mủ cao su) đôi khi chéo với chuối — thử trước.',
+    congDung: 'Dưỡng ẩm, mềm da khô từ chuối chín.',
+    hieuQua: 'Da mềm ngay sau đắp. Không trị mụn/nám.',
+    cachLam: ['Nghiền nửa quả chuối chín với ít mật ong.', 'Đắp 10-15 phút rồi rửa.', 'Da dầu mụn toàn mặt thì đắp vùng khô thôi.'],
+    luuY: 'Chuối ngọt dính — rửa thật kỹ, da mụn nặng tránh.',
   },
   {
     key: 'bot-san-day', ten: 'Bột đàn hương', img: IMG('bot-san-day'),
-    congDung: 'Mặt nạ làm dịu, thơm nhẹ (y học cổ truyền Ấn Độ).',
-    hieuQua: 'Da dịu, thơm sau mỗi lần đắp.',
+    congDung: 'Mặt nạ làm dịu, thơm nhẹ (y học cổ truyền Ấn Độ). Không trị mụn/nám sâu.',
+    hieuQua: 'Da dịu sau mỗi lần đắp.',
     cachLam: ['Trộn 1 thìa bột với nước hoa hồng thành sệt.', 'Đắp 10-15 phút rồi rửa.', 'Thử trước, 1-2 lần/tuần.'],
-    luuY: 'Mua bột nguyên chất, tránh hàng pha màu.',
+    luuY: 'Mua bột nguyên chất, tránh hàng pha màu, pha chì.',
   },
   {
     key: 'dat-set', ten: 'Đất sét (bentonite)', img: IMG('dat-set'),
@@ -219,18 +226,11 @@ export const NATURALS_B = [
     luuY: 'Tác dụng chủ yếu tinh thần.',
   },
   {
-    key: 'bot-lua-mi', ten: 'Bột lúa mì đắp mặt', img: IMG('bot-lua-mi'),
-    congDung: 'Mặt nạ hút dầu nhẹ từ bột ngũ cốc.',
-    hieuQua: 'Da ráo nhẹ sau mỗi lần đắp.',
-    cachLam: ['Trộn bột với sữa chua thành sệt.', 'Đắp 10 phút rồi rửa.', 'Dị ứng gluten (lúa mì) thì tránh.'],
+    key: 'bot-lua-mi', ten: 'Bột lúa mì', img: IMG('bot-lua-mi'),
+    congDung: 'Rửa mặt/mặt nạ hút dầu nhẹ từ bột ngũ cốc.',
+    hieuQua: 'Da ráo nhẹ sau mỗi lần dùng. Không trị mụn viêm.',
+    cachLam: ['Trộn bột với sữa chua thành sệt.', 'Massage 1 phút rồi rửa.', 'Dị ứng gluten (lúa mì) thì tránh.'],
     luuY: 'Người celiac/dị ứng lúa mì không dùng.',
-  },
-  {
-    key: 'dau-xanh-xay', ten: 'Bột đậu xanh', img: IMG('dau-xanh'),
-    congDung: 'Bột rửa mặt/mặt nạ mát, dịu nhẹ.',
-    hieuQua: 'Da sạch nhẹ, mát sau mỗi lần dùng.',
-    cachLam: ['Trộn bột với sữa tươi thành sệt.', 'Massage 1 phút rồi rửa.', '2 lần/tuần.'],
-    luuY: 'Bột mốc, cũ thì bỏ.',
   },
   {
     key: 'dau-den-xay', ten: 'Bột đậu đen', img: IMG('dau-den'),
